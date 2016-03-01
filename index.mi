@@ -1,0 +1,9 @@
+a [
+	h4 [ i [Micro.js v1.0 :)]]
+	<table border="1">
+		tr [
+			td [first!]
+			td [second!]
+		]
+	</table>
+]
