@@ -1,6 +1,6 @@
 a [
     b [ i [toto je jednoducha tabulka :)]]
-    
+
     <table border="1">
         tr [
             td [first!]
