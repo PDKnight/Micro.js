@@ -4,6 +4,42 @@
 |             https://github.com/PDKnight/Micro.js.           |
 \* ********************************************************* */
 
+/* 
+ * Mozilla's bind() polyfill
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind 
+ */
+if (!Function.prototype.bind) {
+	Function.prototype.bind = function(oThis) {
+		if (typeof this !== 'function') {
+			// closest thing possible to the ECMAScript 5
+			// internal IsCallable function
+			throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+		}
+
+		var aArgs   = Array.prototype.slice.call(arguments, 1),
+				fToBind = this,
+				fNOP    = function() {},
+				fBound  = function() {
+					return fToBind.apply(this instanceof fNOP
+								 ? this
+								 : oThis,
+								 aArgs.concat(Array.prototype.slice.call(arguments)));
+				};
+
+		if (this.prototype) {
+			// Function.prototype doesn't have a prototype property
+			fNOP.prototype = this.prototype; 
+		}
+		fBound.prototype = new fNOP();
+
+		return fBound;
+	};
+}
+if (typeof window.console !== 'object') {
+	window.console = {
+		log: function() {}
+	};
+}
 
 var Micro = new function() {
 	this.e;
@@ -25,9 +61,9 @@ var Micro = new function() {
 	}
 	this.e = cs[0];
 
-	NO_XHR_MSG = 'No XHR, no more fun.';
-	XHR_FAILED_MSG = 'The XHR failed :(';
-	var createXHR =  function () {
+	NO_XHR_MSG = 'Error: Your browser can\'t create an AJAX request. ';
+	XHR_FAILED_MSG = 'Error: The AJAX failed. Check your console for more information. ';
+	var createXHR = function () {
 		if (typeof XMLHttpRequest!= "undefined") {
 			return new XMLHttpRequest();
 		} else if (typeof ActiveXObject!="undefined") {
@@ -50,7 +86,7 @@ var Micro = new function() {
 			throw new Error(NO_XHR_MSG);
 		}
 	},
-	get = function(url, func, boole) {
+	getResponse = function(url, func, boole) {
 		var xhr = createXHR(),
 			bool = typeof boole == 'undefined' ? true : boole;
 		xhr.onreadystatechange = function()
@@ -64,14 +100,14 @@ var Micro = new function() {
 					else
 						return allText;
 				} else {
-					throw new Error(XHR_FAILED_MSG 
-						+ '  [status:'+xhr.status+']');
+					this.e.innerHTML = XHR_FAILED_MSG 
+						+ '  [status:'+xhr.status+']';
 				}
 			}
-		}
+		}.bind(this)
 		xhr.open("get", url, bool);
 		xhr.send(null);
-	},
+	}.bind(this),
 	C = { // Composer
 		createElement: function(s) {
 			return d.createElement(s);
@@ -107,7 +143,7 @@ var Micro = new function() {
 	},
 	A = { // Appender
 		arr: [],
-		new: function(x) {
+		New: function(x) {
 			x.unshift(R.ln);
 			this.arr.push(x);
 		},
@@ -157,7 +193,7 @@ var Micro = new function() {
 	}
 
 
-	get(this.e.getAttribute('m-enable') + '.mi', function(r) {
+	getResponse(this.e.getAttribute('m-enable') + '.mi', function(r) {
 
 	R.lns = r.split(/\n/g);
 	var l, tag, ch, newTag,
@@ -174,35 +210,39 @@ var Micro = new function() {
 			ch = l[i];
 			if (ch == '#') break; // stop after the beginning of the comment
 
+			var consoleLog = '%c- \'' + ch
+					+ '\', ' + ch.charCodeAt(0) + ' ' +
+					+ (els.length == 0 
+						|| (els.length>0 ? els[els.length - 1][1] != 'r' : false));
+			console.log(consoleLog,
+					'color: white;font-weight:bolder;background:#aaa;padding:0 10px;');
+
 			if (ch != ']') {
-				console.log('%c!-! \''+tag+'\' '+(/^.+[\s\n]*$/.test(tag))+', '+(/[\s\n]/.test(ch))+', '+(/[a-zA-Z0-9-\s\n]/.test(ch)),'color:red;');
 				if (/^.+[\s\n]+$/.test(tag)) {
 					if (/[\s\n]/.test(ch)) {
 						tag += ch;
 						if (i == l.length - 1)
-							A.new(['text', tag]);
+							A.New(['text', tag]);
 					} else if (ch == '[')
-						A.new(['element_start', tag.replace(/^\s*|\s*$/g,'')]),
+						A.New(['element_start', tag.replace(/^\s*|\s*$/g,'')]),
 						tag = '';
 					else
-						A.new(['text', tag]),
+						A.New(['text', tag]),
 						tag = ch;
 				} else {
 					if (/[a-zA-Z0-9-\s\n]/.test(ch)) {
 						tag += ch;
 						if (i == l.length - 1)
-							A.new(['text', tag]),
-							A.new(['EOL', '']);
+							A.New(['text', tag]),
+							A.New(['EOL', '']);
 					} else
-						A.new(['text', tag + ch]),
+						A.New(['text', tag + ch]),
 						tag = '';
 				}
-				console.log(' ',tag, /^.+[\s\n]+$/.test(tag));
 			}
 			else
-				console.log('!!! tag:',tag),
-				A.new(['text', tag]),
-				A.new(['element_end', '']),
+				A.New(['text', tag]),
+				A.New(['element_end', '']),
 				tag = '';
 		}
 		R.ln++;
