@@ -159,20 +159,12 @@ var Micro = new function() {
 
 	get(this.e.getAttribute('m-enable') + '.mi', function(r) {
 
-	/*if (/[\s\S]*header\s*(\[[\s\S]*\])?[\s\S]* /.test(r)) { // vymazat medzeru pred ukoncenim regexu
-		var header = C.createElement('header');
-		this.e.appendChild(header);
-	}*/
-
 	R.lns = r.split(/\n/g);
 	var l, tag, ch, newTag,
 		els 	= [], // elements in .mi file
 		inn		= ''; // new innerHTML
 	while (R.hasNext()) {
 		l = R.gl(true);
-		/*if (els.length == 0) {
-			els.push(R.lineToElement(true));
-		}*/
 		if (els.length > 0 
 				&& els[els.length - 1][1] == 'r')
 			l = l.replace(/^(\t| {4})/, '');
@@ -223,19 +215,10 @@ var Micro = new function() {
 				A.new(['text', tag]),
 				A.new(['element_end', '']),
 				tag = '';
-
-			/*console.log(' ',els.length, tag.length, 
-				!!els[0] ? els[0] : [], 
-				!!els[1] ? els[1] : [], 
-				!!els[2] ? els[2] : []);*/
 		}
 		R.ln++;
 	}
 
-	/*if (els.length == 0) return;
-	for (i = 0; i < els.length; i++) {
-		inn += C.arrToEl(els[i], true);
-	}*/
 	if (A.print().length == 0) return;
 	this.e.innerHTML = '';
 	this.e.innerHTML += A.together();
