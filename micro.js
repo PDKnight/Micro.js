@@ -196,9 +196,7 @@ var Micro = new function() {
 	getResponse(this.e.getAttribute('m-enable') + '.mi', function(r) {
 
 	R.lns = r.split(/\n/g);
-	var l, tag, ch, newTag,
-		els 	= [], // elements in .mi file
-		inn		= ''; // new innerHTML
+	var l, tag, ch, newTag;
 	while (R.hasNext()) {
 		l = R.gl(true);
 		if (els.length > 0 
@@ -211,9 +209,7 @@ var Micro = new function() {
 			if (ch == '#') break; // stop after the beginning of the comment
 
 			var consoleLog = '%c- \'' + ch
-					+ '\', ' + ch.charCodeAt(0) + ' ' +
-					+ (els.length == 0 
-						|| (els.length>0 ? els[els.length - 1][1] != 'r' : false));
+					+ '\', ' + ch.charCodeAt(0);
 			console.log(consoleLog,
 					'color: white;font-weight:bolder;background:#aaa;padding:0 10px;');
 
