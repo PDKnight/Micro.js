@@ -7,7 +7,7 @@
 
 var Micro = new function() {
 	this.e;
-	this.version = '1.1';
+	this.version = '1.1 - SNAPSHOT';
 	var d = document,
 		sel = function(s, b) {
 			return b ? d.querySelectorAll(s) : d.querySelector(s);
