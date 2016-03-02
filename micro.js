@@ -173,12 +173,6 @@ var Micro = new function() {
 		for (i = 0; i < l.length; i++) {
 			ch = l[i];
 			if (ch == '#') break; // stop after the beginning of the comment
-			var consoleLog = '%c- \'' + ch
-					+ '\', ' + ch.charCodeAt(0) + ' ' +
-					+ (els.length == 0 
-						|| (els.length>0 ? els[els.length - 1][1] != 'r' : false));
-			console.log(consoleLog,
-					'color: white;font-weight:bolder;background:#aaa;padding:0 10px;');
 
 			if (ch != ']') {
 				console.log('%c!-! \''+tag+'\' '+(/^.+[\s\n]*$/.test(tag))+', '+(/[\s\n]/.test(ch))+', '+(/[a-zA-Z0-9-\s\n]/.test(ch)),'color:red;');
@@ -186,25 +180,20 @@ var Micro = new function() {
 					if (/[\s\n]/.test(ch)) {
 						tag += ch;
 						if (i == l.length - 1)
-							console.log('toto je BOD 1!'),
 							A.new(['text', tag]);
 					} else if (ch == '[')
 						A.new(['element_start', tag.replace(/^\s*|\s*$/g,'')]),
 						tag = '';
 					else
-						console.log('%c   !! ' + tag, 'color:blue;font-weight: bolder;'),
 						A.new(['text', tag]),
 						tag = ch;
 				} else {
 					if (/[a-zA-Z0-9-\s\n]/.test(ch)) {
-						console.log('!--! \''+tag+"' '"+ch+"'"+", '"+(tag+ch)+"', "+ch.charCodeAt(0)),
 						tag += ch;
 						if (i == l.length - 1)
-							console.log('toto je BOD 3!'),
 							A.new(['text', tag]),
 							A.new(['EOL', '']);
 					} else
-						console.log('toto je BOD 2!'),
 						A.new(['text', tag + ch]),
 						tag = '';
 				}
