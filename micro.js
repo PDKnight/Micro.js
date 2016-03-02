@@ -7,7 +7,7 @@
 
 var Micro = new function() {
 	this.e;
-	this.version = '1.0';
+	this.version = '1.1';
 	var d = document,
 		sel = function(s, b) {
 			return b ? d.querySelectorAll(s) : d.querySelector(s);
@@ -108,6 +108,7 @@ var Micro = new function() {
 	A = { // Appender
 		arr: [],
 		new: function(x) {
+			x.unshift(R.ln);
 			this.arr.push(x);
 		},
 		print: function() {
@@ -120,8 +121,8 @@ var Micro = new function() {
 				tags = [];
 			for (i = 0; x = els[i]; i++) {
 				console.log(els[i]);
-				var type = els[i][0],
-					value = els[i][1];
+				var type = els[i][1],
+					value = els[i][2];
 				switch(type) {
 					case 'element_start':
 						tags.push(value);
@@ -131,17 +132,19 @@ var Micro = new function() {
 						inner += value;
 						break;
 					case 'EOL': // End Of Line
-						if ((i > 0 && els[i - 1][0] != 'element_start') 
-							&& (i > 1 && els[i - 2][0] != 'element_start'
-									&& /\s+/.test(els[i - 1][1])) )
+						if ((i > 0 && els[i - 1][1] != 'element_start' 
+									&& els[i - 1][1] != 'element_end') 
+							&& (i > 1 && els[i - 2][1] != 'element_start'
+									&& els[i - 2][1] != 'element_end'
+									&& /\s+/.test(els[i - 1][2])) )
 							inner += '<br>';
-						console.log((i > 0 && els[i - 1][0] != 'element_start'), 
-							(i > 1 && els[i - 2][0] != 'element_start'
-									&& /\s+/.test(els[i - 1][1])));
+						console.log((i > 0 && els[i - 1][1] != 'element_start'), 
+							(i > 1 && els[i - 2][1] != 'element_start'
+									&& /\s+/.test(els[i - 1][2])));
 						break;
 					case 'element_end':
 						if (tags.length == 0) {
-							this.e.innerHTML = 'An error occured, there\'s an unwanted closing parenthesis in your .mi file.';
+							this.e.innerHTML = 'Error at line '+els[i][0]+': There\'s an unwanted closing parenthesis in your .mi file.';
 							return;
 						}
 						inner += '</' + tags[tags.length - 1] + '>';

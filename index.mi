@@ -1,5 +1,6 @@
 a [
-	h4 [ i [Micro.js v1.0 :)]]
+	b [ i [toto je jednoducha tabulka :)]]
+	
 	<table border="1">
 		tr [
 			td [first!]
