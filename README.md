@@ -1,4 +1,6 @@
 # Micro.js
+`v1.1 - SNAPSHOT`
+
 Micro.js, simple and easy to use framework made by PDKnight.
 
 ## Features:
