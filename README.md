@@ -3,6 +3,8 @@
 
 Micro.js, simple and easy to use framework made by PDKnight.
 
+### [Try it yourself!](http://pdknight.github.io/Micro/tester)
+
 ## Features:
 ### Compatibility
 Works with every browser.
