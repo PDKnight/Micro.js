@@ -57,7 +57,7 @@ if (!Object.keys)
 
 var Micro = new function() {
 	this.e;
-	this.version = '1.1';
+	this.version = '1.2 - SNAPSHOT';
 	this.CSSprops = ['all','background','background-attachment','background-clip','background-color','background-image','background-origin','background-position','background-repeat','background-size','border','border-bottom','border-bottom-color','border-bottom-left-radius','border-bottom-right-radius','border-bottom-style','border-bottom-width','border-collapse','border-color','border-image','border-image-outset','border-image-repeat','border-image-slice','border-image-source','border-image-width','border-left','border-left-color','border-left-style','border-left-width','border-radius','border-right','border-right-color','border-right-style','border-right-width','border-spacing','border-style','border-top','border-top-color','border-top-left-radius','border-top-right-radius','border-top-style','border-top-width','border-width','bottom','box-shadow','caption-side','clear','clip','color','content','counter-increment','counter-reset','cursor','direction','display','empty-cells','float','font','font-family','font-size','font-size-adjust','font-stretch','font-style','font-synthesis','font-variant','font-weight','height','left','letter-spacing','line-height','list-style','list-style-image','list-style-position','list-style-type','margin','margin-bottom','margin-left','margin-right','margin-top','max-height','max-width','min-height','min-width','opacity','orphans','outline','outline-color','outline-style','outline-width','overflow','padding','padding-bottom','padding-left','padding-right','padding-top','page-break-after','page-break-before','page-break-inside','position','quotes','right','table-layout','text-align','text-decoration','text-indent','text-transform','top','transform','transform-origin','transition','transition-delay','transition-duration','transition-property','transition-timing-function','unicode-bidi','vertical-align','visibility','white-space','widows','width','word-spacing','z-index'];
 	var d = document,
 		sel = function(s, b) {
@@ -70,11 +70,10 @@ var Micro = new function() {
 	for (i = 0; i < c.length; i++)
 		if (c[i].hasAttribute('m-enable'))
 			cs.push(c[i]);
-	if (cs.length != 1) {
+	if (cs.length > 1) {
 		throw new Error('Please use only one element with \'m-enable\' attribute!');
 		return;
-	}
-	this.e = cs[0];
+	} else if (cs.length == 1) this.e = cs[0];
 
 	NO_XHR_MSG = 'Error: Your browser can\'t create an AJAX request. ';
 	XHR_FAILED_MSG = 'Error: The AJAX failed. Check your console for more information. ';
@@ -133,17 +132,11 @@ var Micro = new function() {
 			el.innerHTML = el.innerHTML.replace(/(^\n|\n$)/gm,'');
 			return b ? el.outerHTML : el;
 		},
-		error: function(l, s) {
-			this.e.innerHTML = 'Error at line ' + l + ': ' + s;
+		error: function(l, s, el) {
+			el.innerHTML = 'Error at line ' + l + ': ' + s;
 		}.bind(this)
 	},
 	R = { // Reader
-		ln: 1,
-		lns: [],
-		properties: {
-			'remove_spaces_at_start': 'on',
-			'console_output': 'off'
-		},
 		check: function(id) {
 			var keys = Object.keys(this.properties);
 			if (typeof id !== 'number') return '';
@@ -174,8 +167,6 @@ var Micro = new function() {
 		}
 	},
 	A = { // Appender
-		arr: [],
-		tag_level: 0,
 		New: function(x) {
 			x.unshift(R.ln);
 			this.arr.push(x);
@@ -187,7 +178,7 @@ var Micro = new function() {
 		print: function() {
 			return this.arr;
 		},
-		together: function() {
+		together: function(el) {
 			if (R.check(1))
 				console.log('------------- APPENDER  -----------');
 			var els = A.print(),
@@ -231,7 +222,7 @@ var Micro = new function() {
 						break;
 					case 'element_end':
 						if (tags.length == 0) {
-							C.error(els[i][0], 'There\'s an unwanted closing parenthesis in your .mi file.');
+							C.error(els[i][0], 'There\'s an unwanted closing parenthesis in your .mi file.', el);
 							return;
 						}
 						inner += '</' + tags[tags.length - 1] + '>';
@@ -243,109 +234,122 @@ var Micro = new function() {
 		}.bind(this)
 	}
 
-	getResponse(this.e.getAttribute('m-enable') + '.mi', function(r) {
-
-	R.lns = r.split(/\n/g); // /\n/g
-	var l, tag = '', ch, newTag, val_prop, value, property;
-	while (R.hasNext()) {
-		l = R.gl(true);
-		if (/@.+:\s*.+/.test(l)) {
-			val_prop = l.split(/:\s*/);
-			value = val_prop[0].replace(/^@/,'');
-			if (!R.properties.hasOwnProperty(value)) {
-				C.error(R.ln, 'Unknown property: ' + value + '.');
-				return;
+	this.render = function(r, el) {
+		R.ln = 1;
+		R.lns = [];
+		R.properties = {
+			'remove_spaces_at_start': 'on',
+			'console_output': 'off'
+		};
+		A.arr = [];
+		A.tag_level = 0;
+		R.lns = r.split(/\n/g); // /\n/g
+		var l, tag = '', ch, newTag, val_prop, value, property;
+		while (R.hasNext()) {
+			l = R.gl(true);
+			if (/@.+:\s*.+/.test(l)) {
+				val_prop = l.split(/:\s*/);
+				value = val_prop[0].replace(/^@/,'');
+				if (!R.properties.hasOwnProperty(value)) {
+					C.error(R.ln, 'Unknown property: ' + value + '.', el);
+					return;
+				}
+				property = val_prop[1].replace(/\s+$/,'');
+				R.properties[value] = property;
+				R.ln++;
+				continue;
 			}
-			property = val_prop[1].replace(/\s+$/,'');
-			R.properties[value] = property;
-			R.ln++;
-			continue;
-		}
-		if (A.arr.length > 0 
-				&& A.tag_level > 0
-				&& R.check(0))
-			l = l.replace(/^(\t| {4})/, '');
+			if (A.arr.length > 0 
+					&& A.tag_level > 0
+					&& R.check(0))
+				l = l.replace(/^(\t| {4})/, '');
 
-		//tag = ''; // reset tag
-		for (i = 0; i < l.length; i++) {
-			ch = l[i];
-			if (ch == '#') break; // stop after the beginning of the comment
+			//tag = ''; // reset tag
+			for (i = 0; i < l.length; i++) {
+				ch = l[i];
+				if (ch == '#') break; // stop after the beginning of the comment
 
-			var consoleLog = '%c- ' + R.ln + ', \'' + ch
-					+ '\', ' + ch.charCodeAt(0);
-			if (ch != ']') {
-				R.check(1) ? 
-					console.log('@ -',/^.+[\s\n]+$/.test(tag)) : void(0);
-				if (/^.+[\s\n]+$/.test(tag)) {
-					if (/[\s\n]/.test(ch))
-						tag += ch,
-						R.check(1) ?
-								console.log('!! 0') : void(0);
-					else if (ch == '[')
-						A.New(['element_start', tag.replace(/^\s*|\s*$/g,'')]),
-						tag = '',
-						R.check(1) ?
-							console.log('!! 1') : void(0);
-					else
-						A.New(['text', tag]),
-						tag = ch,
-						R.check(1) ?
-							console.log('!! 2') : void(0);
-				} else {
-					if (/[a-zA-Z0-9-\s\n]/.test(ch)) {
-						tag += ch;
-						if (i == l.length - 1)
-							A.New(['text', tag]),
-							tag = '',
-							A.New(['EOL', '']),
-							R.check(1) ?
-								console.log('!! 3') : void(0);
-					} else if (ch == '\\') {
-						//ch += '\\';
-						if (tag.length > 0 && tag.endsWith('\\'))
+				var consoleLog = '%c- ' + R.ln + ', \'' + ch
+						+ '\', ' + ch.charCodeAt(0);
+				if (ch != ']') {
+					R.check(1) ? 
+						console.log('@ -',/^.+[\s\n]+$/.test(tag)) : void(0);
+					if (/^.+[\s\n]+$/.test(tag)) {
+						if (/[\s\n]/.test(ch))
 							tag += ch,
 							R.check(1) ?
-								console.log('!! 4 - 1', tag) : void(0);
-						else 
+									console.log('!! 0') : void(0);
+						else if (ch == '[')
+							A.New(['element_start', tag.replace(/^\s*|\s*$/g,'')]),
+							tag = '',
+							R.check(1) ?
+								console.log('!! 1') : void(0);
+						else
 							A.New(['text', tag]),
 							tag = ch,
 							R.check(1) ?
-								console.log('!! 4 - 2', tag) : void(0);
+								console.log('!! 2') : void(0);
 					} else {
-						A.New(['text', 
-							(tag.endsWith('\\') ? tag.replace(/\\?$/,'') : tag)
-							+ ch]),
-						tag = '',
-						R.check(1) ?
-							console.log('!! 5') : void(0);
+						if (/[a-zA-Z0-9-\s\n]/.test(ch)) {
+							tag += ch;
+							if (i == l.length - 1)
+								A.New(['text', tag]),
+								tag = '',
+								A.New(['EOL', '']),
+								R.check(1) ?
+									console.log('!! 3') : void(0);
+						} else if (ch == '\\') {
+							//ch += '\\';
+							if (tag.length > 0 && tag.endsWith('\\'))
+								tag += ch,
+								R.check(1) ?
+									console.log('!! 4 - 1', tag) : void(0);
+							else 
+								A.New(['text', tag]),
+								tag = ch,
+								R.check(1) ?
+									console.log('!! 4 - 2', tag) : void(0);
+						} else {
+							A.New(['text', 
+								(tag.endsWith('\\') ? tag.replace(/\\?$/,'') : tag)
+								+ ch]),
+							tag = '',
+							R.check(1) ?
+								console.log('!! 5') : void(0);
+						}
 					}
 				}
-			}
-			else if (tag != '\\')
-				A.New(['text', tag]),
-				A.New(['element_end', '']),
-				tag = '',
-				R.check(1) ?
-					console.log('!! 6') : void(0);
-			else A.New(['text', ch]),
-				tag = '',
+				else if (tag != '\\')
+					A.New(['text', tag]),
+					A.New(['element_end', '']),
+					tag = '',
+					R.check(1) ?
+						console.log('!! 6') : void(0);
+				else A.New(['text', ch]),
+					tag = '',
+					R.check(1) ? 
+						console.log('!! 7') : void(0);
+
 				R.check(1) ? 
-					console.log('!! 7') : void(0);
-
-			R.check(1) ? 
-				console.log(consoleLog + ', "' + tag + '"',
-					'color: white;font-weight:bolder;background:#aaa;padding:0 10px;')
-				: void(0);
+					console.log(consoleLog + ', "' + tag + '"',
+						'color: white;font-weight:bolder;background:#aaa;padding:0 10px;')
+					: void(0);
+			}
+			R.ln++;
 		}
-		R.ln++;
+		R.ln--;
+		A.New(['text', tag]);
+
+		if (A.print().length == 0) return;
+		el.innerHTML = '';
+		var newInner = A.together(el);
+		if (typeof newInner !== 'undefined') el.innerHTML += newInner;
+
 	}
-	R.ln--;
-	A.New(['text', tag]);
-
-	if (A.print().length == 0) return;
-	this.e.innerHTML = '';
-	var newInner = A.together();
-	if (typeof newInner !== 'undefined') this.e.innerHTML += newInner;
-
-	}.bind(this), true);
+	if (typeof this.e !== 'undefined')
+		getResponse(this.e.getAttribute('m-enable') + '.mi',
+			function(r, el){
+				this.render(r, el);
+			}.bind(this),
+			true);
 }
