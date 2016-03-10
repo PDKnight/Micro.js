@@ -71,9 +71,9 @@ You can use options for your .mi file. They go to the start of the file and they
 | remove\_spaces\_at\_start | on, off | Removes 4 spaces or a tab at the start of the line of the text which is inside the component. |
 
 ### Custom render
-In the versions 1.2 and newer you can render your code with `render()` function:
+In the versions 1.2 and newer you can render your code with `render(text, element)` function:
 ```javascript
-Micro.render("h1 [Hello, I'm header.]"); // Will render big header.
+Micro.render('h1 [Hello, world!]', document.body); // Will render big header in body element.
 ```
 
 ### Debugging
