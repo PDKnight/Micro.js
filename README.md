@@ -70,6 +70,12 @@ You can use options for your .mi file. They go to the start of the file and they
 | console\_output | on, off | Checks if the debug code will be printed to console. In case you have a bug report for the autor please turn on the console_output in the start of the file. |
 | remove\_spaces\_at\_start | on, off | Removes 4 spaces or a tab at the start of the line of the text which is inside the component. |
 
+### Custom render
+In the versions 1.2 and newer you can render your code with `render()` function:
+```javascript
+Micro.render("h1 [Hello, I'm header.]"); // Will render big header.
+```
+
 ### Debugging
 In the case `micro.js` will print an error, find it in the table below:
 
