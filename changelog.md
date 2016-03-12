@@ -3,7 +3,7 @@
 * Completely changed the rendering system.
 * Removed error functions.
 
-## v1.1
+## [v1.1](https://github.com/PDKnight/Micro.js/blob/c66f924bcd0591484c4ce43b6677774849e8deb2/src/micro.js)
 * Added polyfills.
 * Added error function.
 * Added `\[` and `\]` statements.
