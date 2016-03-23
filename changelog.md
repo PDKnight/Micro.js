@@ -1,7 +1,11 @@
-## v1.2
+## [v1.2](https://github.com/PDKnight/Micro.js/blob/34e1b847b2cd6e015ac9d437b67cff6e3f93b843/src/micro.js)
 * Added `Micro.render()` and `Micro.read()` functions. Now you can easily convert .mi text to HTML with only one command.
+* **Added properties for elements!**
+* Added '!' prefix for element properties.
+* Added more console.log() outputs for easier code debug.
 * Completely changed the rendering system.
-* Removed error functions.
+* Changed system of error functions.
+* Tons of bugfixes.
 
 ## [v1.1](https://github.com/PDKnight/Micro.js/blob/c66f924bcd0591484c4ce43b6677774849e8deb2/src/micro.js)
 * Added polyfills.
