@@ -94,6 +94,7 @@
 			border: none;
 			resize: vertical;
 			min-height: 300px;
+			height: 100%;
 			color: white;
 			background: transparent;
 			outline: 0px none;
@@ -108,12 +109,31 @@
 
 <div class="table">
 	<div class="table-heading">Code<input type="button" id="run" value="Run"></div>
-	<div class="table-heading">Result</div>
+	<div class="table-heading">Result (<span id="resultTime">0ms</span>)</div>
 </div>
 <div class="table">
 	<div class="cell">
-		<textarea id="code">center [
-    h1 [Micro.js tester]
+	<textarea id="code">center (
+    color: cornflowerblue
+    font-size: 30px
+    font-family: verdana
+    border: 1px solid currentColor
+    background-color: #fafafa
+    text-shadow: 1px 3px 5px #aaa
+    box-shadow: 0px 0px 25px #aaa inset
+) [
+    h1 [
+        Micro.js tester
+        table (
+            !border: 1
+            !cellpadding: 10
+            font-size: 20px
+            color: #999
+            text-shadow: none
+        ) [
+            tr [td [First!]td [Second!]]
+        ]
+    ]
 ]</textarea>
 	</div>
 	<div class="cell">
@@ -130,7 +150,7 @@ function addEvent(el, name, func, bool) {
 		el.attachEvent('on' + name, func);
 	else el['on' + name] = func;
 }
-function r() {Micro.render(code.value, output);}
+function r() {Micro.render(code.value, output, resultTime);}
 addEvent(run, 'click', function() {
 	r();
 }, false);
@@ -138,10 +158,14 @@ addEvent(document, 'keydown', function(e) {
 	/*if (!e.ctrlKey) return;
 	var key = e.which || e.keyCode;
 	if (key == 13) Micro.render(code.value, output);*/
-	r();
+	if ([16,17,18,20,33,34,35,36,37,38,39,40,45,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144]
+			.indexOf(e.which || e.keyCode) == -1)
+		r();
 }, false);
 addEvent(document, 'keyup', function(e) {
-	r();
+	if ([16,17,18,20,33,34,35,36,37,38,39,40,45,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144]
+			.indexOf(e.which || e.keyCode) == -1)
+		r();
 }, false);
 r();
 </script>
