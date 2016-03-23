@@ -1,5 +1,5 @@
 # Micro.js
-`v1.2 - SNAPSHOT`
+`v1.2`
 
 Micro.js, simple and easy to use framework made by PDKnight.
 
@@ -8,45 +8,13 @@ Micro.js, simple and easy to use framework made by PDKnight.
 ## Features:
 ### Compatibility
 Works with every browser.
-### Simple syntax
-For example, if we want to create a `header` element we can do
+### Syntax
+#### Components
+To use an a component, you have to keep this structure:
 ```html
-header [this text is inside a header!]
-```
-Pretty easy, huh? It's more simple than it seems like. 
-
-## Syntax
-### Components
-How to write components? Let's use a primitive `b` tag:
-```html
-b [This is a text.]
-```
-![Result](http://i.imgur.com/liUm0EM.png)
-
-To use a component, you have to keep this structure:
-```html
-component(space needed)[content (new components or text)]
+component (element properties) [content]
 ```
 For now are allowed all the HTML tags.
-
-#### Examples
-```
-b [text]
-```
-Is valid.
-```
-b[text]
-```
-Is not valid, because there's not at least one whitespace character (space, tab etc.) between `b` and left square bracket.
-```
-b
-[text]
-```
-Is not valid for now, because there's a linebreak between `b` and left square bracket.
-```
-b [text]]
-```
-Is not valid, because your code contains extra closing square bracket.
 
 To avoid the code, use a backslash before like `b [text]\]`.
 
@@ -58,6 +26,34 @@ a [
 ]
 ```
 Simple. Everything after the hashtag will be hidden.
+
+#### Properties
+Since v1.2 there was added ability to use properties for elements/components. Here's the example how the property should be written:
+```html
+element (property: value) [content]
+```
+Note that you can use as much spaces and new lines as you wish. This code below is valid as well:
+```html
+element (
+	property: value
+) [content]
+```
+##### Difference between CSS properties and HTML attributes
+**[W3Schools - CSS Reference](http://www.w3schools.com/cssref/)**
+
+In Micro.js are CSS properties and HTML attributes written as properties of element, so you can combine them together. This code below will print a red link to `https://github.com/PDKnight/Micro.js`:
+```html
+a (
+	color: red
+	href:https://github.com/PDKnight/Micro.js
+) [Micro.js framework]
+```
+Pretty easy, isn't it? There are some elements that **have the same CSS property as HTML element**. To avoid this problem you have to prefix your property with `!` to tell `Micro.js` it's an attribute:
+```html
+table (!border:1) [ # border: 1 won't work, because Micro.js thinks it's a CSS property :/
+	tr [td [I'm a cell!]]
+]
+```
 
 ---
 
@@ -85,6 +81,8 @@ In the case `micro.js` will print an error, find it in the table below:
 |-----------------------------------------------------------|--------------------------------------|------------------------|-----------------------|
 | There's an unwanted closing parenthesis in your .mi file. | You have somewhere an extra `]`. | `a [b]]` | `a [b]` |
 | Unknown property: [property]. | Micro.js doesn't know your property. | `@console_outputt: on` | `@console_output: on` |
+| Wrong syntax. Use pattern -> property: value. | You used wrong property pattern. | `a (b) [d]` | `a (b:c) d` |
+| Unsupported property syntax: &lt;syntax&gt;. | You didn't use an alphanumeric property. | `a (*:y) [d]` | `a (x:y) [d]` |
 
 If not, then keep these steps:
 
