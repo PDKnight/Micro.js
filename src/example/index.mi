@@ -1,12 +1,24 @@
-@console_output: on
+@console_output: off
 @remove_spaces_at_start: on
-a [
-    b [ i [this is simple table!]]
-    
-    <table border="1">
-        tr [
-            td [first!]
-            td [second!]
+center (
+    color: cornflowerblue
+    font-size: 30px
+    font-family: verdana
+    border: 1px solid currentColor
+    background-color: #fafafa
+    text-shadow: 1px 3px 5px #aaa
+    box-shadow: 0px 0px 25px #aaa inset
+) [
+    h1 [
+        Micro.js tester
+        table (
+            !border: 1
+            !cellpadding: 10
+            font-size: 20px
+            color: #999
+            text-shadow: none
+        ) [
+            tr [td [First!]td [Second!]]
         ]
-    </table>
+    ]
 ]
