@@ -58,7 +58,7 @@ table (!border:1) [ # border: 1 won't work, because Micro.js thinks it's a CSS p
 ---
 
 
-#### Options
+### Options
 You can use options for your .mi file. They go to the start of the file and they have the following structure:
 ```html
 @option: value
@@ -68,7 +68,7 @@ You can use options for your .mi file. They go to the start of the file and they
 | console\_output | on, off | Checks if the debug code will be printed to console. In case you have a bug report for the author please turn on the console_output in the start of the file. |
 | remove\_spaces\_at\_start | on, off | Removes 4 spaces or a tab at the start of the line of the text which is inside the component. |
 
-#### Custom functions
+### Custom functions
 ##### Micro.read(text, [show_miliseconds])
 Converts Micro.js text to HTML.
 - text: Text to convert to HTML.
@@ -90,7 +90,7 @@ Example:
 Micro.render('h1 [Hello, world!]', document.body); // Will render big header in body element.
 ```
 
-### Debugging
+## Debugging
 In the case `micro.js` will print an error, find it in the table below:
 
 | Error | Description | Example | Solution |
