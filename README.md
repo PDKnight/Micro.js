@@ -69,7 +69,7 @@ You can use options for your .mi file. They go to the start of the file and they
 ```
 | Option | Value | Description |
 |---------------------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| console\_output | on, off | Checks if the debug code will be printed to console. In case you have a bug report for the autor please turn on the console_output in the start of the file. |
+| console\_output | on, off | Checks if the debug code will be printed to console. In case you have a bug report for the author please turn on the console_output in the start of the file. |
 | remove\_spaces\_at\_start | on, off | Removes 4 spaces or a tab at the start of the line of the text which is inside the component. |
 
 ### Custom render
