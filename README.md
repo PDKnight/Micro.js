@@ -5,6 +5,18 @@ Micro.js, simple and easy to use framework made by PDKnight.
 
 ### [Try it yourself!](http://pdknight.github.io/Micro/tester)
 
+## Install
+* Download [the latest version](https://github.com/PDKnight/Micro.js/blob/master/src/micro.js) of micro.js file.
+* Include it in your HTML file and enable Micro.js for an element (for example `body`) with `m-enable` attribute: 
+```html
+<body m-enable="path/to/your/index">
+    <script src="path/to/your/micro.js"></script>
+</body>
+```
+* That's it! Now you can edit your .mi file and watch the magic! :)
+
+Note: you don't have to put .mi at the end of the `m-enable` attribute, so if we use `index`, Micro.js tries to find `index.mi` file.
+
 ## Features:
 ### Compatibility
 Works with every browser.
@@ -106,5 +118,5 @@ If not, then keep these steps:
 2. Press `F12` key to open browser DEV tools.
 3. Refresh your page.
 4. Copy the output in the **console** tab in your DEV tools.
-5. Create a new post in **issues** section with code included.
+5. Create a new post in **[issues](https://github.com/PDKnight/Micro.js/issues)** section with code included.
 6. That's it!
