@@ -1,6 +1,9 @@
 ## [v1.2.5](https://github.com/PDKnight/Micro.js/blob/2f22626e4d2cfff903606f41dc37dea802d80081/src/micro.js)
+* **Added components!**
 * Added `@import` statement.
 * Added `@title` statement.
+* Better browser support
+* Denied `style` and `script` elements
 * *Bugfix #4:* `* [x]`
 * *Bugfix #5:* `a (b:#c) [d]`
 * *Bugfix #6:* `a [b]\nc[d]`
