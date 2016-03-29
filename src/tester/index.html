@@ -113,35 +113,27 @@
 </div>
 <div class="table">
 	<div class="cell">
-	<textarea id="code">center (
-    color: cornflowerblue
-    font-size: 30px
-    font-family: verdana
-    border: 1px solid currentColor
-    background-color: #fafafa
-    text-shadow: 1px 3px 5px #aaa
-    box-shadow: 0px 0px 25px #aaa inset
-) [
-    h1 [
-        Micro.js tester
-        table (
-            !border: 1
-            !cellpadding: 10
-            font-size: 20px
-            color: #999
-            text-shadow: none
-        ) [
-            tr [td [First!]td [Second!]]
-        ]
-    ]
-]</textarea>
+	<textarea id="code">@import ../assets/components.css
+menu [
+    menu-brand(src:http://pdknight.github.io/Micro/img/logo.png)[]
+    menu-item [Home]
+    menu-item [About us]
+]
+h2 (
+    color: #eee
+    font-family: 'Roboto'
+    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.4)
+    padding: 20px 40px
+    background: #aaa
+    max-width: 400px
+) [This is cool header]</textarea>
 	</div>
 	<div class="cell">
 		<div id="output"></div>
 	</div>
 </div>
 
-<script src="../micro.js"></script>
+<script src="../micro.min.js"></script>
 <script>
 function addEvent(el, name, func, bool) {
 	if (el.addEventListener)
@@ -150,21 +142,28 @@ function addEvent(el, name, func, bool) {
 		el.attachEvent('on' + name, func);
 	else el['on' + name] = func;
 }
-function r() {Micro.render(code.value, output, resultTime);}
+function r() {
+	code.value.length == 0
+		? output.innerHTML = ''
+		: Micro.render(code.value, output, resultTime);
+}
 addEvent(run, 'click', function() {
 	r();
 }, false);
 addEvent(document, 'keydown', function(e) {
-	/*if (!e.ctrlKey) return;
 	var key = e.which || e.keyCode;
-	if (key == 13) Micro.render(code.value, output);*/
 	if ([16,17,18,20,33,34,35,36,37,38,39,40,45,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144]
-			.indexOf(e.which || e.keyCode) == -1)
+			.indexOf(key) == -1 
+			&& (!e.ctrlKey || (e.ctrlKey && (key == 86 || key == 88)))
+		)
 		r();
 }, false);
 addEvent(document, 'keyup', function(e) {
+	var key = e.which || e.keyCode;
 	if ([16,17,18,20,33,34,35,36,37,38,39,40,45,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144]
-			.indexOf(e.which || e.keyCode) == -1)
+			.indexOf(key) == -1
+			&& (!e.ctrlKey || (e.ctrlKey && (key == 86 || key == 88)))
+		)
 		r();
 }, false);
 r();
