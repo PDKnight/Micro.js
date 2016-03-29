@@ -1,16 +1,19 @@
-# Micro.js
-`v1.2`
+![Micro.js logo](http://pdknight.github.io/Micro/img/logo2.png)
+
+`v1.2.5`
 
 Micro.js, simple and easy to use framework made by PDKnight.
 
 ### [Try it yourself!](http://pdknight.github.io/Micro/tester)
 
+![Micro.js tester](http://i.imgur.com/SIu7Yed.png)
+
 ## Install
-* Download [the latest version](https://github.com/PDKnight/Micro.js/blob/master/src/micro.js) of micro.js file.
+* Download [the latest minified version](https://github.com/PDKnight/Micro.js/blob/master/src/micro.min.js) of micro.js file.
 * Include it in your HTML file and enable Micro.js for an element (for example `body`) with `m-enable` attribute: 
 ```html
 <body m-enable="path/to/your/index">
-    <script src="path/to/your/micro.js"></script>
+    <script src="path/to/your/micro.min.js"></script>
 </body>
 ```
 * That's it! Now you can edit your .mi file and watch the magic! :)
@@ -24,9 +27,9 @@ Works with every browser.
 #### Components
 To use an a component, you have to keep this structure:
 ```html
-component (element properties) [content]
+component (optional_properties) [content]
 ```
-For now are allowed all the HTML tags, but `style` and `script` tags won't affect the website for now.
+Note that `style` and `script` tags are denied.
 
 To avoid the code, use a backslash before like `b [text]\]`.
 
@@ -34,20 +37,21 @@ To avoid the code, use a backslash before like `b [text]\]`.
 To write a comment use `#` character.
 ```html
 a [
-	text # This is a comment.
+	Micro.js will render this code. # But this not.
 ]
 ```
 Simple. Everything after the hashtag will be hidden.
 
 #### Properties
-Since v1.2 there was added ability to use properties for elements/components. Here's the example how the property should be written:
+Since v1.2 there was added ability to use properties for components. Here's the example how the property should be written:
 ```html
-element (property: value) [content]
+component (property: value) [content]
 ```
 Note that you can use as much spaces and new lines as you wish. This code below is valid as well:
 ```html
 element (
 	property: value
+	another-property: value
 ) [content]
 ```
 ##### Difference between CSS properties and HTML attributes
@@ -62,13 +66,56 @@ a (
 ```
 Pretty easy, isn't it? There are some elements that **have the same CSS property as HTML element**. To avoid this problem you have to prefix your property with `!` to tell `Micro.js` it's an attribute:
 ```html
-table (!border:1) [ # border: 1 won't work, because Micro.js thinks it's a CSS property :/
-	tr [td [I'm a cell!]]
+table (!border:1) [ # border: 1 will set a CSS border property, 
+                    # so if we want to be border as attribute we use `!` at the start.
+	tr [
+	    td [I'm a cell!]
+	]
 ]
 ```
 
 ---
 
+### Import
+* Imports `.css` or `.js` file.
+```html
+@import file
+```
+Note that file must have `.css` or `.js` extension.
+
+### Title
+* Changes page title.
+```html
+@title Page title
+```
+Simple? I think so.
+
+---
+
+### Components
+Components are the best part of the whole framework. They shorten your code alot. You can use them whenever you want, but you have to download and include [components.css](https://github.com/PDKnight/Micro.js/blob/master/src/assets/components.css) file as well. To use them, keep the following structure:
+```html
+@import path/to/components.css
+component-name (optional_properties) [content]
+another-component (optional_properties) [content]
+```
+####Available components:
+* menu
+* menu-brand
+* menu-item
+
+####Example:
+```html
+@import ../assets/components.css
+menu [
+    menu-brand(src:http://pdknight.github.io/Micro/img/logo.png)[]
+    menu-item [Home]
+    menu-item [About us]
+]
+```
+![Example result](http://i.imgur.com/v8FzfmF.png)
+
+---
 
 ### Options
 You can use options for your .mi file. They go to the start of the file and they have the following structure:
@@ -111,6 +158,7 @@ In the case `micro.js` will print an error, find it in the table below:
 | Unknown property: [property]. | Micro.js doesn't know your property. | `@console_outputt: on` | `@console_output: on` |
 | Wrong syntax. Use pattern -> property: value. | You used wrong property pattern. | `a (b) [d]` | `a (b:c) [d]` |
 | Unsupported property syntax: &lt;syntax&gt;. | You didn't use an alphanumeric property. | `a (*:y) [d]` | `a (x:y) [d]` |
+| Please import only .css or .js file(s). | Your import file doesn't end with `css` or `.js` extension. | `@import x` | `@import x.css` |
 
 If not, then keep these steps:
 
