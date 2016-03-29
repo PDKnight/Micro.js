@@ -4,6 +4,10 @@
 |             https://github.com/PDKnight/Micro.js.           |
 \* ********************************************************* */
 
+// Use strict!
+'use strict';
+/*@cc_on @*/
+
 /*** POLYFILLS **********************************************
 
 /* 
@@ -52,7 +56,7 @@ if (!String.prototype.endsWith)
 	}
 if (!String.prototype.escape)
 	String.prototype.escape = function() {
-  		return this.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+		return this.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 	}
 if (!Object.keys)
 	Object.keys = function(obj) {
@@ -62,10 +66,16 @@ if (!Object.keys)
 				keys.push(i);
 		return keys;
 	};
+if (!Array.prototype.indexOf)
+	Array.prototype.indexOf = function(obj, start) {
+		for (var p = (start || 0), q = this.length; p < q; p++)
+			if (this[p] === obj) return p;
+		return -1;
+	}
 
 var Micro = new function() {
 	this.e;
-	this.version = '1.2';
+	this.version = '1.2.5';
 	var d = document,
 		sel = function(s, b) {
 			return b ? d.querySelectorAll(s) : d.querySelector(s);
@@ -73,10 +83,10 @@ var Micro = new function() {
 		NO_XHR_MSG,XHR_FAILED_MSG;
 
 	var c = sel('*', true),
-		cs = [];
-	for (i = 0; i < c.length; i++)
-		if (c[i].hasAttribute('m-enable'))
-			cs.push(c[i]);
+		cs = [], p;
+	for (p = 0; p < c.length; p++)
+		if (c[p].hasAttribute('m-enable'))
+			cs.push(c[p]);
 	if (cs.length > 1) {
 		throw new Error('Please use only one element with \'m-enable\' attribute!');
 		return;
@@ -104,11 +114,11 @@ var Micro = new function() {
 			}
 			return new ActiveXObject(arguments.callee.activeXString);
 		} else {
-			throw new Error(NO_XHR_MSG);
+			err(NO_XHR_MSG);
 		}
 	},
-	getResponse = function(url, func, boole) {
-		var xhr = createXHR(),
+	getResponse = function(url, func, err, boole) {
+		var xhr = createXHR(err),
 			bool = typeof boole == 'undefined' ? true : boole;
 		xhr.onreadystatechange = function()
 		{
@@ -117,12 +127,12 @@ var Micro = new function() {
 						|| xhr.status == 304) {
 					var allText = xhr.responseText;
 					if (typeof func != 'undefined')
-						func(allText);
+						func(allText, url);
 					else
 						return allText;
 				} else {
-					this.e.innerHTML = XHR_FAILED_MSG 
-						+ '  [status:'+xhr.status+']';
+					err(XHR_FAILED_MSG 
+						+ '  [status:'+xhr.status+']');
 				}
 			}
 		}.bind(this)
@@ -147,20 +157,38 @@ var Micro = new function() {
 			}.bind(this)
 		};
 		this.R = { // Reader
-			check: function(id) {
-				var keys = Object.keys(this.properties);
-				if (typeof id !== 'number') return '';
-				if (id >= 0 && id < keys.length) {
-					var val = this.properties[keys[id]];
-					return val == 'on' ? true 
-						: (val == 'off' ? false : val);
-				}
-				return '';
+			ln: 1,
+			lns: [],
+			tagRe: /^\s*[a-zA-Z0-9-]+[\s\n]*$/,
+			properties: {
+				'remove_spaces_at_start': 'on',
+				'console_output': 'off'
 			},
-			gl: function(removeComments) { // get line
-				return removeComments && !this.A.brackets.started()
-					? this.R.lns[this.R.ln - 1].replace(/#.*/,'')
-					: this.R.lns[this.R.ln - 1];
+			togglable: [
+				'remove_spaces_at_start',
+				'console_output'
+			],
+			isTogglable: function(id) {
+				if (typeof id !== 'number') return false;
+				var keys = Object.keys(this.properties);
+				if (id < 0 || id >= keys.length) return false;
+				return this.togglable.indexOf(keys[id]) > -1;
+			},
+			check: function(id) {
+				var tgb = this.isTogglable(id);
+				if (typeof id !== 'number')
+						return tgb ? false : '';
+				var keys = Object.keys(this.properties);
+				if (id < 0 || id >= keys.length)
+					return false;
+				var val = this.properties[keys[id]];
+
+				return tgb ? val == 'on' || val == 'true' : val;
+					/*val == 'on' ? true 
+					: (val == 'off' ? false : val)*/;
+			},
+			gl: function() { // get line
+				return this.R.lns[this.R.ln - 1];
 			}.bind(this),
 			lnl: function() { // lines length
 				return this.lns.length;
@@ -170,47 +198,47 @@ var Micro = new function() {
 			},
 			lineToElement: function(createElement) {
 				var pureElement = this.gl(true).replace(/\s+[\s\S]*/,'');
-				console.log(pureElement);
 				return createElement
 					? C.createElement(pureElement)
 					: pureElement;
 			},
-			read: function(r, err) {
-				this.R.ln = 1;
-				this.R.lns = [];
-				this.R.properties = {
-					'remove_spaces_at_start': 'on',
-					'console_output': 'off'
-				};
-				this.A.arr = [];
-				this.A.tag_level = 0;
+			read: function(r, err, version) {
+				if (r.length == 0) return [[1, 'text', '']];
 				this.R.lns = r.split(/\n/);
-				this.A.brackets = {
-					started: false,
-					text: '',
-					state: -1,
-					append: function(s) {
-						this.text += s;
-					},
-					started: function() {
-						return this.state > -1;
-					}
-				};
 
 				var l, tag = '', ch, newTag, val_prop, value, property;
 				while (this.R.hasNext()) {
-					l = this.R.gl(true);
-					if (/@.+:\s*.+/.test(l)) {
-						val_prop = l.split(/:\s*/);
-						value = val_prop[0].replace(/^@/,'');
-						if (!this.R.properties.hasOwnProperty(value)) {
-							err('Unknown property: ' + value + '.', this.R.ln);
-							return;
+					l = this.R.gl();
+					if (/^@.+/.test(l)) {
+						var importRe = /^@import\s+([^\s\n]+)\s*$/,
+							titleRe = /^@title\s+(.+)\s*$/;
+						if (importRe.test(l)) {
+							var url = l.match(importRe)[1];
+							if (!/.+(.css|.js)$/.test(url)) {
+								err('Please import only .css or .js file(s).', this.R.ln);
+								return;
+							}
+							this.A.responses[url.indexOf('.css') == (url.length - 4)
+								? 'styles' : 'scripts'].push(url);
+							this.R.ln++;
+							continue;
+						} else if (titleRe.test(l)) {
+							var title = l.match(titleRe)[1];
+							if (document.title) document.title = title;
+							this.R.ln++;
+							continue;
+						} else if (/^@[^:]+:\s*.+/.test(l)) { // console_output RE: ([\s\n]+if\s*\(this\.R\.check\(1\)\))?[\s\n]+console\.log\(([^;]|\n)+;[^\n]*
+							val_prop = l.split(/:\s*/);
+							value = val_prop[0].replace(/^@/,'');
+							if (!this.R.properties.hasOwnProperty(value)) {
+								err('Unknown property: ' + value + '.', this.R.ln);
+								return;
+							}
+							property = val_prop[1].replace(/\s+$/,'');
+							this.R.properties[value] = property;
+							this.R.ln++;
+							continue;
 						}
-						property = val_prop[1].replace(/\s+$/,'');
-						this.R.properties[value] = property;
-						this.R.ln++;
-						continue;
 					}
 					if (this.A.arr.length > 0 
 							&& this.A.tag_level > 0
@@ -218,126 +246,221 @@ var Micro = new function() {
 						l = l.replace(/^(\t| {4})/, '');
 
 					//tag = ''; // reset tag
+					if (l.length == 0 || l.charCodeAt(l.length - 1) != 13)
+						l += this.R.ln != this.R.lns.length
+							? String.fromCharCode(13)
+							: (this.A.brackets.started() ? String.fromCharCode(10) : '');
 					for (i = 0; i < l.length; i++) {
 						ch = l[i];
-						//if (ch == '#' && !this.A.brackets.started()) break; // stop after the beginning of the comment
+						if (ch == '#' 
+							&& !this.A.brackets.started()) break; // stop after the beginning of the comment
 
 						var consoleLog = '%c- ' + this.R.ln + ', \'' + ch
-								+ '\', ' + ch.charCodeAt(0);
+								+ '\', ' + ch.charCodeAt(0),
+							elz = this.A.arr;
 
-						if (this.A.brackets.started()) {
-							if (ch == '\)'
-									|| (i == l.length - 1 && this.R.ln == this.R.lns.length)
-								) {
-								this.A.brackets.state = -1;
-								this.A.New(['properties', tag + (ch == '\)' ? '' : ch)]);
+						if ((elz.length > 0 
+									&& (
+										(ch == '(' && this.A.brackets.level == 0)
+										|| (ch == ')' && this.A.brackets.level == 1)
+										|| this.A.brackets.started()
+									)
+								) || (elz.length == 0 && this.R.tagRe.test(tag)
+									&& ch == '(')
+							) {
+							if (tag && !this.A.brackets.started())
+								this.A.New(['text', tag]),
 								tag = '';
-								this.R.check(1) ?
-									console.log('!! 2 - 3') : void(0);
-							} else
-								tag += ch + (i == l.length - 1 ? '\n' : ''),
-								this.R.check(1) ?
-									console.log('!! 2 - 2') : void(0);
-							this.R.check(1) ? 
-								console.log(consoleLog + ', "' + tag + '"',
-									'color: white;font-weight:bolder;background:#aaa;padding:0 10px;')
-								: void(0);
-							continue;
-						} else {
-							if (ch == '\(') {
-								this.A.brackets.state = 0;
-								this.A.New(['text', tag]);
-								tag = '';
-								this.R.check(1) ?
-									console.log('!! 2 - 1') : void(0);
-								this.R.check(1) ? 
-									console.log(consoleLog + ', "' + tag + '"',
-										'color: white;font-weight:bolder;background:#aaa;padding:0 10px;')
-									: void(0);
+
+							var m, mm, finalTag = ''; // there MUST be a tag before
+							for (m = elz.length - 1; m >= 0; m--) {
+								mm = elz[m];
+								if (mm[1] == 'text') {
+									if (this.R.tagRe.test(mm[2])) {
+										finalTag = mm[2];
+										break;
+									} else if (!/^\s*$/.test(mm[2])) break;
+								}
+							}
+
+							if (finalTag) {
+								if (this.A.brackets.started()) {
+									if (ch == ')'
+											|| (i == l.length - 1 
+												&& this.R.ln == this.R.lns.length
+											)
+										) {
+										this.A.brackets.level--;
+										if (!this.A.brackets.level 
+												|| (i == l.length - 1 && this.R.ln == this.R.lns.length)) {
+											this.A.brackets.state = -1;
+											this.A.New(['properties', tag 
+													+ (this.A.brackets.level || ch != ')' ? ch : ''),
+												!this.A.brackets.level && ch == ')']);
+											tag = '';
+										} else {
+											tag += ')';
+										}
+									} else if (ch == '(') {
+										this.A.brackets.level++;
+										tag += '(';
+									} else {
+										tag += ch.charCodeAt(0) == 13/* && this.R.ln == this.R.lns.length*/
+											 ? '\n' : ch;
+									}
+								} else {
+									if (ch == '(') {
+										this.A.brackets.state = 0;
+										this.A.brackets.level++;
+										if (i == l.length - 1 && this.R.ln == this.R.lns.length)
+											tag += '(';
+									}
+								}
 								continue;
 							}
 						}
 
 						if (ch != ']') {
-							this.R.check(1) ? 
-								console.log('@ -',/^[^\s\n]+[\s\n]+$/.test(tag)) : void(0);
-							if (/^[^\s\n]+[\s\n]+$/.test(tag)) {
-								if (/[\s\n]/.test(ch))
-									tag += ch,
-									this.R.check(1) ?
-											console.log('!! 0') : void(0);
-								else if (ch == '[')
-									this.A.New(['element_start', tag.replace(/^\s*|\s*$/g,'')]),
-									tag = '',
-									this.R.check(1) ?
-										console.log('!! 1') : void(0);
-								else
-									this.A.New(['text', tag]),
-									tag = ch,
-									this.R.check(1) ?
-										console.log('!! 3') : void(0);
+							if (/^[a-zA-Z0-9-]+[\s\n]+$/.test(tag)) {
+								if (/[\s\n]/.test(ch)) {
+									tag += ch;
+								} else if (ch == '[') {
+									this.A.New(['element_start', tag.replace(/^\s+|\s+$/g,'')]);
+									tag = '';
+								} else {
+									this.A.New(['text', tag]);
+									tag = ch;
+								}
 							} else {
 								if (/[a-zA-Z0-9-\s\n]/.test(ch)) {
 									tag += ch;
-									if (i == l.length - 1)
-										this.A.New(['text', tag]),
-										tag = '',
-										this.A.New(['EOL', '']),
-										this.R.check(1) ?
-											console.log('!! 4') : void(0);
+									if (i == l.length - 1) {
+										this.A.New(['text', tag]);
+										tag = '';
+										this.A.New(['EOL', '']);
+									}
 								} else if (ch == '\\') {
 									//ch += '\\';
-									if (tag.length > 0 && tag.endsWith('\\'))
-										tag += ch,
-										this.R.check(1) ?
-											console.log('!! 5 - 1', tag) : void(0);
-									else 
-										this.A.New(['text', tag]),
-										tag = ch,
-										this.R.check(1) ?
-											console.log('!! 5 - 2', tag) : void(0);
+									if (tag.length > 0 && tag.endsWith('\\')) {
+										tag += ch;
+									} else {
+										this.A.New(['text', tag]);
+										tag = ch;
+									}
 								} else if (ch == '[') {
-									this.A.New(['element_start', 
-										(tag.endsWith('\\') 
-											? tag.replace(/\\?$|^\s*|\s*$/g,'') 
-											: tag.replace(/^\s*|\s*$/g,''))]),
-									tag = '',
-									this.R.check(1) ?
-										console.log('!! 6') : void(0);
-								} else {
+									if (this.R.tagRe.test(tag)) {
+										var elz = this.A.arr;
+											if (/^\s+[a-zA-Z0-9-]+[\s\n]*$/.test(tag)) {
+												var spaces = tag.match(/^(\s+)/)[1];
+												this.A.New(['text', spaces]);
+												tag = tag.replace(/^\s+/,'');
+											}
+											this.A.New(['element_start', 
+												(tag.endsWith('\\') 
+													? tag.replace(/\\?$|^\s+|\s+$/g,'') 
+													: tag.replace(/^\s+|\s+$/g,''))]);
+											tag = '';
+										//}
+									} else {
+										var elz = this.A.arr;
+										if (!/^\s*$/.test(tag)
+											|| (elz.length > 1
+												? elz[elz.length - 1][1] == 'properties'
+												: false
+											)
+										) {
+											if (elz.length > 1 && elz[elz.length - 1][1] == 'properties') {
+												var m, mm, finalTag = '';
+												for (m = elz.length - 1; m >= 0; m--) {
+													mm = elz[m];
+													if (mm[1] == 'text') {
+														if (this.R.tagRe.test(mm[2])) {
+															finalTag = mm[2];
+															m = 0;
+														} else m = 0;
+													}
+												}
+												this.A.New(['element_start', ''/*finalTag.replace(/^\s+|\s+$/g,'')*/]);
+												tag = '';
+											} else {
+												this.A.New(['text', tag]);
+												tag = '';
+												this.A.New(['element_start', '']);
+											}
+										} else {
+											if (elz.length > 1) {
+												var m, mm = '', finalTag = '', f, propss, wasBracketBefore;
+												for (m = elz.length - 1; m >= 0; m--) {
+													mm = elz[m];
+													if (mm[1] == 'EOL') continue;
+													if (mm[1] == 'properties') {
+														propss = mm[2];
+														continue;
+													} else if (mm[1] == 'text') {
+														if (this.A.isSBracket(mm[2]))
+															continue;
+														wasBracketBefore = false;
+														if (this.A.isSpace(mm[2]) && m > 0) {
+															var n, nn;
+															for (n = m - 1; n >= 0; n--) {
+																nn = elz[n];
+																if (nn[1] == 'EOL') continue;
+																if (nn[1] == 'text') {
+																	if (this.A.isSBracket(nn[2])) {
+																		wasBracketBefore = true;
+																		break;
+																	} else if (!this.A.isSpace(nn[2])
+																		&& !this.R.tagRe.test(nn[2])) break;
+																} else break;
+															}
+														}
+														if (!wasBracketBefore) {
+															if (this.R.tagRe.test(mm[2])) {
+																finalTag = mm[2];
+																this.A.arr.splice(m);
+																this.A.properties = propss;
+																this.A.New(['element_start', finalTag.replace(/^\s+|\s+$/g,'')]);
+																f = true;
+																break;
+															}
+														} else break;
+													} else break;
+												}
+												if (!f) {
+													this.A.New(['text', '[']);
+												}
+											} else {
+												this.A.New(['text', '[']);
+											}
+										}
+									}
+								} else if (tag) {
 									this.A.New(['text', 
 										(tag.endsWith('\\') ? tag.replace(/\\?$/,'') : tag)
-										+ ch]),
-									tag = '',
-									this.R.check(1) ?
-										console.log('!! 7') : void(0);
-								}
+										+ ch]);
+									tag = '';
+								} else tag += ch;
 							}
+						} else if (tag != '\\') {
+							this.A.New(['text', tag]);
+							this.A.New(['element_end', '']);
+							tag = '';
+						} else {
+							this.A.New(['text', ch]);
+							tag = '';
 						}
-						else if (tag != '\\')
-							this.A.New(['text', tag]),
-							this.A.New(['element_end', '']),
-							tag = '',
-							this.R.check(1) ?
-								console.log('!! 8', this.A.arr) : void(0);
-						else this.A.New(['text', ch]),
-							tag = '',
-							this.R.check(1) ? 
-								console.log('!! 9') : void(0);
-
-						this.R.check(1) ? 
-							console.log(consoleLog + ', "' + tag + '"',
-								'color: white;font-weight:bolder;background:#aaa;padding:0 10px;')
-							: void(0);
 					}
 					this.R.ln++;
-					/*if (/^[\s\n]*$/.test(l) && !this.A.brackets.started()) {
-						this.A.New(['text', tag]),
-						tag = '',
-						this.A.New(['EOL', '']),
-						this.R.check(1) ?
-							console.log('!! 10') : void(0);
-					}*/
+					var a_arr = this.A.arr;
+					if (!this.A.brackets.started()
+							&& (a_arr.length > 1
+								? a_arr[a_arr.length - 1][1] != 'EOL'
+								: true)
+						) {
+						this.A.New(['text', tag]);
+						tag = '';
+						this.A.New(['EOL', '']);
+					}
 				}
 				this.R.ln--;
 				if (!/^[\s\n]*$/.test(tag))
@@ -347,10 +470,47 @@ var Micro = new function() {
 			}.bind(this)
 		};
 		this.A = { // Appender
+			isSpace: function(s) {
+				return /^[\s\n]*$/.test(s);
+			},
 			tag: '',
+			isTag: function(s) {
+				return /^\s*[a-zA-Z0-9-]+[\s\n]*$/.test(s);
+			},
+			isSBracket: function(s) {
+				return /^\s*\[[\s\n]*$/.test(s);
+			},
+			banned_tags: ['style', 'script'],
+			components: {
+				'menu': ['div', 'class="menu"'],
+				'menu-brand': ['img', 'class="menu-brand"'],
+				'menu-item': ['div', 'class="menu-item"']
+			},
+			responses: {
+				styles: [],
+				scripts: []
+			},
 			properties: '',
+			closedProperties: false,
+			pReset: function() { // properties reset
+				this.properties = '';
+				this.closedProperties = false;
+			},
 			propsLine: 0,
 			tag_level: 0, // for Reader
+			arr: [],
+			brackets: {
+				started: false,
+				text: '',
+				state: -1,
+				level: 0,
+				append: function(s) {
+					this.text += s;
+				},
+				started: function() {
+					return this.state > -1;
+				}
+			},
 			tg_level: function(tags) {
 				return tags.length;
 			}, // for .together()
@@ -385,37 +545,40 @@ var Micro = new function() {
 			isNearElement: function(els, i, b) {
 				if (els.length < 2
 						|| i >= els.length - 2) return false;
-				var k, foundStart = false, startTag = '';
+				var k, kk;
 				for (k = i + 1; kk = els[k]; k++) {
-					if (els[i][2] == 'c ')
-						console.log(kk, foundStart, startTag);
-					if (!foundStart) {
-						if (kk[1] == 'EOL'
-								|| (b ? kk[1] == 'properties' : false)
-							)
+					if (kk[1] == 'EOL'
+							|| (b ? kk[1] == 'properties' : false)
+						)
+						continue;
+					if (kk[1] == 'text') {
+						if (/^[^\\]*\]$/.test(kk[2]))
+							break;
+						if (/^[\s\n]*$/.test(kk[2]))
 							continue;
-						if (kk[1] == 'text') {
-							if (/^[^\\]*\]$/.test(kk[2]))
-								return false;
-							if (/^[\s\n]*$/.test(kk[2]))
-								continue;
-							else if (/^\s*\[$/.test(kk[2]))
-								foundStart = true;
-							else {
-								/*if (!startTag) startTag = kk[2];
-								else */return false;
-							}
-						} else if (kk[1] == 'element_start') {
-							if (/^[\s\n]*$/.test(kk[2]))
-								foundStart = true;
-							else return false;
-						} else if (kk[1] == 'element_end')
-							return false;
-					} else {
-						if ( (kk[1] == 'text' && /^[^\\]*\]$/.test(kk[2]))
-								|| kk[1] == 'element_end' )
+						else if (/^\s*\[$/.test(kk[2]))
 							return true;
-					}
+						else break;
+					} else if (kk[1] == 'element_start') {
+						if (this.isSpace(kk[2]))
+							return true;
+						else break;
+					} else if (kk[1] == 'element_end')
+						break;
+				}
+				return false;
+			},
+			isBeforeElement: function(els, i) {
+				if (els.length < 2 && i < 2) return false;
+				var n, nn;
+				for (n = i - 1; n >= 0; n--) {
+					nn = els[n];
+					if (nn[1] == 'EOL' || nn[1] == 'properties') continue;
+					if (nn[1] == 'text') {
+						if (this.isTag(nn[2])) return true;
+						else if (this.isSpace(nn[2])) continue;
+						else break;
+					} else break;
 				}
 				return false;
 			},
@@ -432,9 +595,13 @@ var Micro = new function() {
 						err('Wrong syntax. Use pattern -> property: value.', ln-lines.length+k+1);
 						return 'err';
 					}
-					parts = kk.split(/\s*:(.*)\s*/);
+					parts = kk.split(/\s*:\s*/);
+					val = parts[1];
+					if (parts.length > 2)
+						for (var m = 2; m < parts.length; m++)
+							val += ':' + parts[m];
 					prop = parts[0].replace(/^\s+|\s+$/,'').toLowerCase();
-					val = parts[1].replace(/^\s+|\s+$/,'');
+					val = val.replace(/^\s+|\s+$/,'');
 					if (!/^\!?[a-zA-Z0-9-]+$/.test(prop)) {
 						err('Unsupported property syntax: ' + prop + '.', ln-lines.length+k+1 );
 						return 'err';
@@ -459,25 +626,18 @@ var Micro = new function() {
 				return p;
 			}.bind(this),
 			together: function(err) {
-				if (this.R.check(1))
-					console.log('------------- APPENDER  -----------');
 				var els = this.A.print(),
 					inner = '',
 					tags = [],
-					startedBrackets = false;
-
-				if (this.R.check(1))
-						console.log('Elements length:',els.length);
+					startedBrackets = false, x;
 				for (i = 0; x = els[i]; i++) {
-					if (this.R.check(1))
-						console.log(i, x);
 					var type = x[1],
 						value = x[2];
 
 					if ((type == 'text' 
-							&& !/(^\s*\[$|^[\s\n]*$)/.test(value))
+								&& !/(^\s*\[$|^[\s\n]*$)/.test(value)
+								&& /^\s*[a-zA-Z0-9-]+\s*$/.test(value))
 							|| (type == 'element_start' && !/^[\s\n]*$/.test(value)) ) {
-
 						this.A.tag = value;
 					} else if (type != 'properties'
 							&& !/(^\s*\[$|^[\s\n]*$)/.test(value)) {
@@ -486,67 +646,106 @@ var Micro = new function() {
 
 					if (type == 'properties') {
 						this.A.properties = value;
+						this.A.closedProperties = x[3];
 						this.A.propsLine = x[0];
 					} else if (
 						type == 'text' && (
 								!/[^\[]*\[$/.test(value)
-								&& !/[\s\n]+/.test(value)
+								&& !/[\s\n]*/.test(value)
 								//|| /[^\[]*\[$/.test(value)
 							)
 						) {
-						this.A.properties = '';
+						this.A.pReset();
 					}
 
 					switch(type) {
 						case 'element_start':
-							if (!/^[\s\n]*$/.test(value)) tags.push(value);
-							if (this.R.check(1))
-								console.log(this.A.tg_level(tags),
-									this.A.tag.length,
-									inner,
-									inner.endsWith('>'));
 							var tagname = this.A.tag,
 								tagname_r = tagname.replace(/^\s+|\s+$/,''),
+								re = RegExp('('+ tagname +')((<br>|\\s|\\n)*)$'),
+								components = this.A.components,
+								tagname_c_props = '',
 								props = this.A.properties;
 
-							if (props.length > 0) {
-								var re = RegExp('('+ tagname +')((<br>|\\s|\\n)*)$'),
-									replace = inner.replace(re, '');
-								inner = replace;
-								this.R.check(1) ? 
-									console.log("Replaced last inner: '"+inner+"', '"+tagname+"'," +re+", '"+replace+"'") : void(0);
-								inner += '<' + tagname_r;
-								tags.push(tagname_r);
-								this.R.check(1) ? 
-									console.log("%cFound properties: '" + props + "'", 'color: white;font-weight:bolder;background:#5a5;padding:0 10px;') : void(0);
-								var propsTranslated = this.A.readProperties(props, this.A.propsLine, err, true);
-								if (propsTranslated == 'err') return;
-								if (this.R.check(1)) console.log(propsTranslated);
-								inner += propsTranslated == null ? '' : propsTranslated
-									+ '>';
-								this.A.properties = '';
+							if (tags.length > 0
+									? RegExp("<" 
+										+ tags[tags.length - 1] 
+										+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*$").test(inner)
+									: false
+									){
+								inner += '>';
+							}
+
+							if (this.A.banned_tags.indexOf(tagname_r) > -1) {
+								err('Unsupported element: ' + tagname_r + '.', x[0]);
+								return;
+							}
+
+							if (this.A.components.hasOwnProperty(tagname_r)) {
+								tagname_c_props = ' ' + components[tagname_r][1];
+								tagname_r = components[tagname_r][0];
+							}
+
+							if (!/^[\s\n]*$/.test(value) && !props) tags.push(tagname_r);
+
+
+
+							if (!tagname) break;
+							if (!this.A.isTag(tagname_r)) {
+								inner += re.test(inner) ? '' : tagname
+									+ '[';
 								this.A.tag = '';
-								if (this.R.check(1))
-									console.log(this.A.print(inner));
-								continue;
+								this.A.pReset();
+								break;
 							}
 							if (i > 0 && els[i - 1][1] == 'element_start'
-									&& tags.length > 1
-									&& els[i - 1][2] == tags[tags.length - 2]
-									&& !RegExp("<" 
-												+ tags[tags.length - 1] 
-												+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*>$").test(inner)) {
-								inner += '>';
-								if (this.R.check(1))
-									console.log('!!! 0');
+									&& /^\s*$/.test(els[i - 1][2]))
+								inner += '[';
+
+							if (props) {
+								var replace = inner.replace(re, '');
+								inner = replace;
+								inner += '<' + tagname_r + tagname_c_props;
+								tags.push(tagname_r);
+								var propsTranslated = this.A.readProperties(props, this.A.propsLine, err, true);
+								if (propsTranslated == 'err') return;
+								inner += propsTranslated == null ? '' : propsTranslated;
+								this.A.pReset();
+								continue;
 							}
 
-							if (value.length == 0)
-								inner += '<' + tagname_r,
-								tags.push(tagname_r);
-							else inner += '<' + value;
+							if (value.length == 0) {
+								if (!RegExp("<" 
+										+ tags[tags.length - 1] 
+										+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*>$").test(inner)) {
+									inner += '<' + tagname_r + tagname_c_props,
+									tags.push(tagname_r);
+								}
+							} else inner += '<' + tagname_r + tagname_c_props;
 
-							this.A.tag = value;
+							this.A.tag = tagname_r;
+							break;
+						case 'properties':
+							if (i < els.length - 1) {
+								var m, mm;
+								for (m = i + 1; m < els.length; m++) {
+									mm = els[m];
+									if (mm[1] == 'EOL' 
+										|| (mm[1] == 'text' && /^\s*$/.test(mm[2]))
+									) continue;
+									else if (mm[1] == 'properties') {
+										var closedProperties = x[3],
+											failed = false,
+											readd = Micro.read(value, false, false, function(e, ln) {
+												ln = ln || 'unknown';
+												failed = 'Error at line ' + ln + ': ' + e;
+											});
+										inner += '(' + readd + (closedProperties ? ')' : '');
+										if (failed) return failed;
+										break;
+									} else break;
+								}
+							}
 							break;
 						case 'text':
 							var whitespaceRE = /(^\s*\[$|^[\s\n]*$)/,
@@ -558,103 +757,107 @@ var Micro = new function() {
 								}
 							});
 
-							if (i > 1 && this.A.tag
-									&& this.A.properties) {
+							if (i > 1 && (
+										this.A.properties
+										|| (i > 0
+											? els[i - 1][1] == 'properties'
+											: false
+										)
+									)
+								) {
 								var props = this.A.properties;
 								if (this.A.isNearElement(els, i)
-										&& /^(<br>|\s|\n)*$/.test(value))
+										&& /^(<br>|\s|\n)*$/.test(value)) {
 									continue;
-
-								if (/^\s*\[$/.test(value)) {
-									var tagname = this.A.tag,
-										tagname_r = tagname.replace(/^\s+|\s+$/,''),
-										re = RegExp('('+ tagname +')((<br>|\\s|\\n)*)$'),
-										replace = inner.replace(re, '');
-									inner = replace;
-									this.R.check(1) ? 
-										console.log("Replaced last inner: '"+inner+"', '"+tagname+"'," +re+", '"+replace+"'") : void(0);
-									inner += '<' + tagname_r;
-									tags.push(tagname_r);
-									this.R.check(1) ? 
-										console.log("%cFound properties: '" + props + "'", 'color: white;font-weight:bolder;background:#5a5;padding:0 10px;') : void(0);
-									inner += '>';
-									this.A.properties = '';
-									if (this.R.check(1))
-										console.log(this.A.print(inner));
-									continue;
-								} else {
-									var failed = false,
-										inn = '(' + Micro.read(props, false, false, function(e, ln) {
-											ln = ln || 'unknown';
-											failed = 'Error at line ' + ln + ': ' + e;
-										}) + ')';
-									if (failed) return failed;
-									if (this.R.check(1))
-										console.log(tags, i, this.R.properties);
-									inner += inn;
-									this.A.properties = '';
 								}
-							} else if (i > 0 && els[i - 1][1] == 'element_start'
-									&& !RegExp("<" 
-										+ tags[tags.length - 1] 
-										+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*>$").test(inner) )
-								inner += '>',
-								this.R.check(1) ? 
-									console.log('!!! 1') : void(0);
-							if (this.R.check(1))
-								console.log('isFullEl:',isFullEl);
+								var failed = false,
+								readd = Micro.read(props 
+										+ (props.split('\n').length > 1 
+											? String.fromCharCode(13) : ''), false, false, function(e, ln) {
+									ln = ln || 'unknown';
+									failed = 'Error at line ' + ln + ': ' + e;
+								}),
+								inn = '(' + readd + (this.A.closedProperties ? ')' : '');
+								if (failed) return failed;
+								inner += inn;
+								this.A.pReset();
+							} else if (
+									!this.A.isBeforeElement(els, i)
+									&& (i > 0 
+									? (tags.length > 0
+											? els[i - 1][1] == 'element_start' 
+												|| (els[i - 1][1] == 'text'
+													&& /^\s*\[[\s\n]*$/.test(els[i - 1][2])
+												)
+											: true
+									) : true)
+								) {
+								if (tags.length > 0
+										? RegExp("<" 
+											+ tags[tags.length - 1] 
+											+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*$").test(inner)
+										: false
+									) {
+									inner += '>' 
+										+ (/^\s*\[[\s\n]*$/.test(value) ? '[' : '');
+									this.A.tag = ''; this.A.pReset();
+								} else if (/^\s*\[[\s\n]*$/.test(value) || (
+										i > 0
+											? els[i - 1][1] == 'element_start' && /^\s*$/.test(els[i - 1][2])
+											: false
+									)) {
+									inner += '[';
+									this.A.tag = ''; this.A.pReset();
+									//continue;
+								}
+							}
 
 							if (
 								(i < els.length - 1 
 									&& !value.endsWith('\\')
 									&& els[i + 1][2] != ']'
-									&& (
-										els.length > 1
-									)
+									&& els.length > 1
 								)) {
-									inner += isFullEl ? '' : (tags.length > 0 
+									inner += isFullEl && this.R.tagRe.test(value) ? '' : (tags.length > 0 
 										? (
 											!RegExp("<" 
 													+ tags[tags.length - 1] 
 													+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*>$").test(inner)
 												&& whitespaceRE.test(value)
 											? '' : value
+										) : (
+											i > 0
+												? (
+													/^\s*\[[\s\n]*$/.test(value)
+														? (els[i - 1][1] == 'element_start' ? value : '')
+														: value
+												)
+												: (/^\s*\[[\s\n]*$/.test(value) ? '' : value)
 										)
-										: value);
-									if (this.R.check(1))
-										console.log('!!! 2');
+									);
 								}
-							else inner += /\\+/.test(value) 
-										? value : value.replace(/\\+$/, ''),
-									this.R.check(1) ? 
-										console.log('!!! 3') : void(0);
+							else { inner += /\\+/.test(value) 
+										? value : value.replace(/\\+$/, '');
+							}
 							break;
 						case 'EOL': // End Of Line
 							var isNearElement = this.A.isNearElement(els, i);
 							if (isNearElement && this.A.tag)
-								inner += this.A.tag,
-								this.A.tag = '';
+								break;
 							if ((i > 0 
-									? (els[i - 1][1] != 'element_start' 
-										&& els[i - 1][1] != 'element_end')
-									: true ) 
-								&& (i > 1 ? els[i - 2][1] != 'element_start' : true)
-								/*&& (
-									i > 2 
-										&& this.A.tag 
-											? (els[i - 1][1] == 'text'
-												? this.A.properties.length > 0
-													? !isNearElement
-													: isNearElement
-												: true)
+										? (els[i - 1][1] != 'element_start' 
+											&& els[i - 1][1] != 'element_end')
+										: true ) 
+									&& (i > 1 && tags.length > 0
+											? (els[i - 2][1] != 'element_end'
+													&& els[i - 2][1] != 'element_start'
+												? !isNearElement
+												: false)
 											: true
-								*/)
+										)
+									&& i != els.length - 1
+								)
 								inner += '<br>';
-							if (this.R.check(1))
-								console.log(i, (i > 0 && els[i - 1][1] != 'element_start'), 
-									i > 1 ? els[i - 2][1] != 'element_start' : true
-										/*&& /\s+/.test(els[i - 1][2])*/,
-										isNearElement);
 							break;
 						case 'element_end':
 							if (tags.length == 0) {
@@ -666,8 +869,6 @@ var Micro = new function() {
 							this.A.tag = '';
 							break;
 					}
-					if (this.R.check(1))
-						console.log(this.A.print(inner));
 				}
 				return inner;
 			}.bind(this)
@@ -681,27 +882,67 @@ var Micro = new function() {
 			failed = 'Error at line ' + ln + ': ' + e;
 		}
 		var core = new Core(),
-			arr = core.R.read(r, err);
+			arr = core.R.read(r, err, this.version);
 		if (b) return arr;
-		if (arr.length == 0) return '';
 		var newInner = core.A.together(err),
 			d2 = new Date().getTime(),
 			ret = failed ? failed : newInner;
-		return ms ? [d2 - d, ret] : ret;
+		return ms ? [d2 - d, ret, core.A.responses] : ret;
 	}
 
 	this.render = function(r, el, el2) {
 		if (!r) return;
 		if (!el) el = this.e;
 
-		var inn = this.read(r, true);
+		var inn = this.read(r, true),
+			responses = inn[2], k, kk, l, ll,
+			innerMatch = el.innerHTML.match(/[\s\S]+(?=(<style\s*(?:\s*[a-zA-Z0-9-]+\s*=\s*(?:\"[^\"]*\"|'[^']*'))*>[\s\S]+<\/style>.*|<script\s*(?:\s*[a-zA-Z0-9-]+\s*=\s*(?:\"[^\"]*\"|'[^']*'))*>[\s\S]+<\/script>.*))/),
+			dd;
 		if (el2) el2.innerHTML = inn[0] + 'ms';
+		if (innerMatch != null) {
+			dd = document.createElement('div');
+			dd.innerHTML = innerMatch[1];
+			var styles = dd.querySelectorAll('style'),
+				ddInner = '';
+			if (responses && responses.styles.length > 0)
+				for (l = 0; l < styles.length; l++)
+					if (styles[l].hasAttribute('id')
+							&& responses.styles.indexOf(styles[l].id) > -1) {
+						ddInner += styles[l].outerHTML;
+					}
+			dd.innerHTML = ddInner;
+		}
 		el.innerHTML = inn[1];
+		if (dd) {
+			el.innerHTML += dd.innerHTML;
+			return;
+		}
+		if (responses) {
+			if (responses.styles.length > 0)
+				for (k = 0; kk = responses.styles[k]; k++) {
+					getResponse(kk, function(r, kk) {
+						el.innerHTML += '<style id="' + kk + '">' + r + '</style>';
+					}, function(e) {
+						el.innerHTML = e;
+					}, true);
+				}
+			if (responses.scripts.length > 0)
+				for (k = 0; kk = responses.scripts[k]; k++) {
+					getResponse(kk, function(r) {
+						eval(r);
+					}, function(e) {
+						el.innerHTML = e;
+					}, true);
+				}
+		}
 	}
 	if (typeof this.e !== 'undefined')
 		getResponse(this.e.getAttribute('m-enable') + '.mi',
-			function(r, el){
-				this.render(r, el);
+			function(r){
+				this.render(r);
+			}.bind(this),
+			function(e) {
+				this.e.innerHTML = e;
 			}.bind(this),
 			true);
 }
