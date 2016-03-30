@@ -1,4 +1,8 @@
-## [v1.2.5](https://github.com/PDKnight/Micro.js/blob/2f22626e4d2cfff903606f41dc37dea802d80081/src/micro.js)
+## v1.3 *(components update)*
+* comming soon...
+* *Bugfix #14:* `\ncomponent_name (a:b) [c]`
+
+## [v1.2.5](https://github.com/PDKnight/Micro.js/blob/2f22626e4d2cfff903606f41dc37dea802d80081/src/micro.js) *(bugfix update)*
 * **Added components!**
 * Added `@import` statement.
 * Added `@title` statement.
@@ -17,7 +21,7 @@
 
 And many more...
 
-## [v1.2](https://github.com/PDKnight/Micro.js/blob/34e1b847b2cd6e015ac9d437b67cff6e3f93b843/src/micro.js)
+## [v1.2](https://github.com/PDKnight/Micro.js/blob/34e1b847b2cd6e015ac9d437b67cff6e3f93b843/src/micro.js) *(properties update)*
 * Added `Micro.render()` and `Micro.read()` functions. Now you can easily convert .mi text to HTML with only one command.
 * **Added properties for elements!**
 * Added '!' prefix for element properties.
