@@ -1,13 +1,233 @@
+@favicon ../assets/favicon.png
 @import ../assets/components.css
-menu [
-    menu-brand(src:http://pdknight.github.io/Micro/img/logo.png)[]
-    menu-item [Home]
-    menu-item [About us]
+@title Micro.js, an HTML5 framework
+menu (
+    fixed: on
+    position: absolute
+    transparent: on
+)[
+    menu-brand (
+        src: http://pdknight.github.io/Micro/img/logo.png
+    )[]
+    menu-item (href: #install) [Install]
+    menu-item (href: #syntax) [Syntax]
+    menu-item (href: #iandt) [Imports, Titles & Favicons]
+    menu-item (href: #components) [Components]
+    menu-item (href: #options) [Options]
+    menu-item (href: #customf) [Custom functions]
+] grand (
+    background-image: url(../assets/wp.jpeg)
+) [
+    grand-content (align: center) [
+        title (
+            block-type: compact
+            padding-type: xxl
+            color: khaki
+            background: rgba(0, 0, 0, 0.27)
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.15) inset
+        ) [
+            Micro.js sub-title (color: #918949) [Fast - Simple - Powerful]
+            code (
+                padding: 20px 40px
+                margin: 30px 0 0
+                box-shadow: 0 0 15px #aaa inset
+            ) [Micro.read&\#1;span(color:#808030)[&\#40;]span(color:#b86a6a)[']span(color:#4747e5)[This is some b &\#91;bold&\#93; text!]span(color:#b86a6a)[']span(color:#808030)[)]span(color:#b86a6a)[;]
+
+                span(color:#bcbcbc)[// Will print "This is some &lt;b&gt;bold&lt;/b&gt; text!"]        
+            ]
+        ]
+    ]
+] middle [
+    h1 [a (name: install)[Install]]
+    div (padding-type: xl) [
+        li [Download the a (
+            target: _blank
+            href:https://github.com/PDKnight/Micro.js/blob/master/src/micro.min.js
+        ) [latest minified version] of micro.js file.]
+        li [Include it in your HTML file and enable Micro.js for an element (for example mark [body]) with mark [m-enable] attribute:]
+            code [
+                span(color:#3a4a64)[
+                    &lt;span(color:#3a4a64)[body ]
+                    span(color:#3a4a64)[m-enable] = span(color:#409b1c)["path/to/your/index"]>
+                ]clear[]
+                &emsp;&emsp;&lt;span(color:#3b5bb5)[script ] 
+                    span(color:#3b5bb5)[src] = span(color:#409b1c)["path/to/your/micro.min.js"] >&lt;/&\#1;span(color:#3b5bb5)[script]>
+                clear[]
+                span(color:#3a4a64)[
+                    &lt;/&\#1;span(color:#3a4a64)[body]>
+                ]
+            ]
+        li [That's it! Now you can edit your .mi file and watch the magic! :)]
+        Note: you don't have to put .mi at the end of the mark [m-enable] attribute, so if we use mark [index], Micro.js tries to find mark [index.mi] file.
+    ]
+    h1 [a (name: syntax)[Syntax]]
+    div (padding-type: xl) [
+        h2 [Components]
+        To use an a component, you have to keep this structure:
+        code [span(color:#3a4a64)[component] span(color:#409b1c)[(optional_properties)] &\#91;content&\#93;]
+        Note that style and script tags are denied.
+
+        To avoid the code, use a backslash before like mark [b &\#91;text\&\#93;].
+
+
+        h2 [Comments]
+        To write a comment use mark[\#] character.
+        code [span(color:#3a4a64)[a] &\#91;
+                &emsp;Micro.js will render this code. span(color:#bcbcbc)[\# But this not.] clear[]
+            &\#93;
+        ]
+        Simple. Everything after the hashtag will be hidden.
+
+        h2 [Properties]
+        Since v1.2 there was added ability to use properties for components. Here's the example how the property should be written:
+        code [span(color:#3a4a64)[component]
+            span(color:#409b1c)[(property: value)] &\#91;content&\#93;
+        ]
+        Note that you can use as much spaces and new lines as you wish. This code below is valid as well:
+
+        code [span(color:#3a4a64)[element]
+            span(color:#409b1c)[(
+            &emsp;property: value
+            &emsp;another-property: value
+        )] &\#91;content&\#93;]
+
+        h3 (margin: 20px 0) [Difference between CSS properties and HTML attributes]
+        a (href: http://www.w3schools.com/cssref/) [W3Schools - CSS Reference]
+
+        In Micro.js are CSS properties and HTML attributes written as properties of element, so you can combine them together. This code below will print a red link to mark [https://github.com/PDKnight/Micro.js]:
+
+        code [span(color:#3a4a64)[a] span(color:#409b1c)[(
+            &emsp;color: red
+            &emsp;href:https://github.com/PDKnight/Micro.js
+            )] &\#91;Micro.js framework&\#93;
+        ]
+        Pretty easy, isn't it? There are some elements that b [have the same CSS property as HTML element]. To avoid this problem you have to prefix your property with mark [!] to tell mark [Micro.js] it's an attribute:
+        code[span(color:#3a4a64)[table] span(color:#409b1c)[(!border:1)] &\#91; span(color:#bcbcbc)[\# border: 1 will set a CSS border property, so if we want to be border as attribute we use `!` at the start.]clear[]
+            &emsp;span(color:#3a4a64)[tr] &\#91;
+            &emsp;&emsp;span(color:#3a4a64)[td] &\#91;I'm a cell!&\#93;
+            &emsp;&\#93;
+            &\#93;
+        ]
+
+        h2 [Custom properties]
+        You have also ability to use custom properties. Here's list of all the custom properties:
+
+        li [fixed - on/off (only for menu)]
+        li [hidden - on/off]
+        li [align - left/center/right]
+        li [box - white/black]
+        li [block-type - compact/box]
+        li [padding-type - s/m/l/xl/xxl]
+        li [margin-type - s/m/l/xl/xxl]
+        li [radius - s/m/l/xl/xxl/full]
+
+        Example:
+        code [span(color:#3a4a64)[title] span(color:#409b1c)[(
+                &emsp;block-type: compact
+                &emsp;padding-type: xxl
+                &emsp;color: khaki
+                &emsp;background: rgba(0, 0, 0, 0.27)
+                &emsp;box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.15) inset
+            )] &\#91;
+                &emsp;Micro.js
+            &\#93;
+        ]
+    ]
+    h1 [a (name: iandt)[Imports, Titles & Favicons]]
+    div (padding-type: xl) [
+        h2 [Import]
+        li [Imports .css or .js file.]
+        code[span(color:#2060a0)[@import] file]
+        Note that file must have .css or .js extension.
+
+        h2 [Title]
+        li [Changes page title.]
+        code [span(color:#2060a0)[@title] page title]
+
+        h2 [Favicon]
+        li [Changes page favicon image. Supports all image extensions.]
+        code [span(color:#2060a0)[@favicon] link/to/your/favicon.png]
+        Simple? I think so.
+    ]
+    h1 [a (name: components)[Components]]
+    div (padding-type: xl) [
+        Components are the best part of the whole framework. They shorten your code alot. You can use them whenever you want, but you have to download and include a (href:https://github.com/PDKnight/Micro.js/blob/master/src/assets/components.css)[components.css] file as well. To use them, keep the following structure:
+        code [span(color:#2060a0)[@import] path/to/components.css
+            span(color:#bcbcbc)[\# Your code...]clear[]
+            span(color:#3a4a64)[component-name] span(color:#409b1c)[(optional_properties)] &\#91;content&\#93;
+            span(color:#3a4a64)[another-component] span(color:#409b1c)[(optional_properties)] &\#91;content&\#93;
+        ]
+        Available components:
+
+        li [dark]
+        li [menu]
+        li [menu-brand]
+        li [menu-item]
+        li [clear]
+        li [grand]
+        li [grand-content]
+        li [title]
+        li [sub-title]
+        li [code]
+        li [middle]
+        Example:
+        code [span(color:#2060a0)[@import] path/to/components.css
+            span(color:#3a4a64)[menu] &\#91;
+                &emsp;span(color:#bcbcbc)[\# Your code...]clear[]
+                &emsp;span(color:#3a4a64)[menu-brand] span(color:#409b1c)[(src: http://pdknight.github.io/Micro/img/logo.png)]&\#91;&\#93;
+                &emsp;span(color:#3a4a64)[menu-item] &\#91;Home&\#93;
+                &emsp;span(color:#3a4a64)[menu-item] &\#91;About us&\#93;
+            &\#93;
+        ]
+        Will turn into
+
+        menu [
+            menu-brand (src: http://pdknight.github.io/Micro/img/logo.png)[] 
+            menu-item [Home] 
+            menu-item [About us] 
+        ]
+    ]
+    h1 [a (name: options)[Options]]
+    div (padding-type: xl) [
+        You can use options for your .mi file. They go to the start of the file and they have the following structure:
+        code[span(color:#2060a0)[@option]: value]
+        table (
+            !border: 1
+            cellspacing: 0
+        ) [
+            tr [
+                th [Option]
+                th [Value]
+                th [Description]
+            ]
+            tr [
+                td [console_output]
+                td [on, off]
+                td [Checks if the debug code will be printed to console. In case you have a bug report for the author please turn on the console_output in the start of the file.]
+            ]
+            tr [
+                td [remove_spaces_at_start]
+                td [on, off]
+                td [Removes 4 spaces or a tab at the start of the line of the text which is inside the component.]
+            ]
+        ]
+    ]
+    h1 [a (name: customf)[Custom functions]]
+    div (padding-type: xl) [
+        h3 [Micro.read(text, &\#91;show_miliseconds&\#93;)]
+        Converts Micro.js text to HTML.
+        li [text: Text to convert to HTML.]
+        li [show_miliseconds (optional): If set to true, framework will output an array: &\#91;miliseconds, converted_text&\#93;.]
+        Example:
+        code [Micro.read(span(color:#409b1c)['h1 &\#91;Hello, world!&\#93;'], span(color:#3b5bb5)[true]); 
+            span(color:#8c868f)[// Will print out: &\#91;1, "&lt;h1>Hello, world!&lt;/h1>"&\#93;]
+        ]
+        h3 [Micro.render(text, element, &\#91;element2&\#93;);]
+        Renders the text.
+        li [text: Text to convert to HTML.]
+        li [element: Element to write the result HTML.]
+        li [element2 (optional): Element to write time it took Micro.js to process the text.]
+        Example:
+        code [Micro.render(span(color:#409b1c)['h1 &\#91;Hello, world!&\#93;'], span(color:#3b5bb5)[document]&\#46;span(color:#3b5bb5)[body]); span(color:#8c868f)[// Will render big header in body element.]]
+    ]
 ]
-h2 (
-    color: #eee
-    font-family: 'Roboto'
-    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.4)
-    padding: 20px 40px
-    background: #aaa
-) [This is cool header]
