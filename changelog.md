@@ -1,13 +1,21 @@
-## v1.3 *(components update)*
-* comming soon...
+## [v1.3](https://github.com/PDKnight/Micro.js/blob/7a332545c58d7b7115842cef1c3c0129be012a2f/src/micro.js) *(components update)*
+* **Added more components!**
+* **Added custom properties!**
+* Added ability to use `m-enable="this"`.
+* Added `@favicon` statement.
+* Fixed website loading.
 * *Bugfix #14:* `\ncomponent_name (a:b) [c]`
+* *Bugfix #15:* bug with trimming tag names.
+* *Bugfix #16:* `(a) b c[`
+* *Bugfix #17:* `a b[(c)] d`
+* *Bugfix #18:* `. b[]`
 
 ## [v1.2.5](https://github.com/PDKnight/Micro.js/blob/2f22626e4d2cfff903606f41dc37dea802d80081/src/micro.js) *(bugfix update)*
 * **Added components!**
 * Added `@import` statement.
 * Added `@title` statement.
-* Better browser support
-* Denied `style` and `script` elements
+* Better browser support.
+* Denied `style` and `script` elements.
 * *Bugfix #4:* `* [x]`
 * *Bugfix #5:* `a (b:#c) [d]`
 * *Bugfix #6:* `a [b]\nc[d]`
