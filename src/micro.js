@@ -58,6 +58,10 @@ if (!String.prototype.escape)
 	String.prototype.escape = function() {
 		return this.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 	}
+if (!String.prototype.tr)
+	String.prototype.tr = function() {
+		return this.replace(/^\s*|\s*$/g,'');
+	}
 if (!Object.keys)
 	Object.keys = function(obj) {
 		var keys = [];
@@ -75,7 +79,7 @@ if (!Array.prototype.indexOf)
 
 var Micro = new function() {
 	this.e;
-	this.version = '1.2.5';
+	this.version = '1.3';
 	var d = document,
 		sel = function(s, b) {
 			return b ? d.querySelectorAll(s) : d.querySelector(s);
@@ -211,8 +215,26 @@ var Micro = new function() {
 					l = this.R.gl();
 					if (/^@.+/.test(l)) {
 						var importRe = /^@import\s+([^\s\n]+)\s*$/,
-							titleRe = /^@title\s+(.+)\s*$/;
-						if (importRe.test(l)) {
+							titleRe = /^@title\s+(.+)\s*$/,
+							faviconRe = /^@favicon\s+(.+)\.(.+)\s*$/;
+						if (faviconRe.test(l)) {
+							var match = l.match(faviconRe),
+								path = match[1],
+								extension = match[2],
+								linkIcon = sel('link#favicon');
+							if (linkIcon 
+								&& (linkIcon.hasAttribute('href')
+									? linkIcon.getAttribute('href') != path + '.' + extension
+									: true)) linkIcon.remove();
+							var linkTag = document.createElement('link');
+								linkTag.id = 'favicon';
+								linkTag.rel = 'icon';
+								linkTag.type = 'image/' + extension;
+								linkTag.href = path + '.' + extension;
+							document.head.appendChild(linkTag);
+							this.R.ln++;
+							continue;
+						} else if (importRe.test(l)) {
 							var url = l.match(importRe)[1];
 							if (!/.+(.css|.js)$/.test(url)) {
 								err('Please import only .css or .js file(s).', this.R.ln);
@@ -227,7 +249,7 @@ var Micro = new function() {
 							if (document.title) document.title = title;
 							this.R.ln++;
 							continue;
-						} else if (/^@[^:]+:\s*.+/.test(l)) { // console_output RE: ([\s\n]+if\s*\(this\.R\.check\(1\)\))?[\s\n]+console\.log\(([^;]|\n)+;[^\n]*
+						} else if (/^@[^:]+:\s*.+/.test(l)) {
 							val_prop = l.split(/:\s*/);
 							value = val_prop[0].replace(/^@/,'');
 							if (!this.R.properties.hasOwnProperty(value)) {
@@ -253,14 +275,17 @@ var Micro = new function() {
 					for (i = 0; i < l.length; i++) {
 						ch = l[i];
 						if (ch == '#' 
+							&& (i > 0
+								? l[i - 1] != '\\'
+								: true)
 							&& !this.A.brackets.started()) break; // stop after the beginning of the comment
 
 						var consoleLog = '%c- ' + this.R.ln + ', \'' + ch
 								+ '\', ' + ch.charCodeAt(0),
 							elz = this.A.arr;
 
-						if ((elz.length > 0 
-									&& (
+						if ((
+									(
 										(ch == '(' && this.A.brackets.level == 0)
 										|| (ch == ')' && this.A.brackets.level == 1)
 										|| this.A.brackets.started()
@@ -305,7 +330,7 @@ var Micro = new function() {
 										this.A.brackets.level++;
 										tag += '(';
 									} else {
-										tag += ch.charCodeAt(0) == 13/* && this.R.ln == this.R.lns.length*/
+										tag += ch.charCodeAt(0) == 13
 											 ? '\n' : ch;
 									}
 								} else {
@@ -317,11 +342,15 @@ var Micro = new function() {
 									}
 								}
 								continue;
+							} else if (this.A.isSpace(tag)) {
+								this.A.New(['text', '(']),
+								tag = '';
+								continue;
 							}
 						}
 
 						if (ch != ']') {
-							if (/^[a-zA-Z0-9-]+[\s\n]+$/.test(tag)) {
+							if (/^[^\s\n]+[\s\n]+$/.test(tag)) {
 								if (/[\s\n]/.test(ch)) {
 									tag += ch;
 								} else if (ch == '[') {
@@ -331,6 +360,9 @@ var Micro = new function() {
 									this.A.New(['text', tag]);
 									tag = ch;
 								}
+							} else if(this.A.isSpace(tag) && /[a-zA-Z0-9-]/.test(ch)) {
+								this.A.New(['text', tag]);
+								tag = ch;
 							} else {
 								if (/[a-zA-Z0-9-\s\n]/.test(ch)) {
 									tag += ch;
@@ -350,17 +382,16 @@ var Micro = new function() {
 								} else if (ch == '[') {
 									if (this.R.tagRe.test(tag)) {
 										var elz = this.A.arr;
-											if (/^\s+[a-zA-Z0-9-]+[\s\n]*$/.test(tag)) {
-												var spaces = tag.match(/^(\s+)/)[1];
-												this.A.New(['text', spaces]);
-												tag = tag.replace(/^\s+/,'');
-											}
-											this.A.New(['element_start', 
-												(tag.endsWith('\\') 
-													? tag.replace(/\\?$|^\s+|\s+$/g,'') 
-													: tag.replace(/^\s+|\s+$/g,''))]);
-											tag = '';
-										//}
+										if (/^\s+[a-zA-Z0-9-]+[\s\n]*$/.test(tag)) {
+											var spaces = tag.match(/^(\s+)/)[1];
+											this.A.New(['text', spaces]);
+											tag = tag.replace(/^\s+/,'');
+										}
+										this.A.New(['element_start', 
+											(tag.endsWith('\\') 
+												? tag.replace(/\\?$|^\s+|\s+$/g,'') 
+												: tag.replace(/^\s+|\s+$/g,''))]);
+										tag = '';
 									} else {
 										var elz = this.A.arr;
 										if (!/^\s*$/.test(tag)
@@ -380,7 +411,7 @@ var Micro = new function() {
 														} else m = 0;
 													}
 												}
-												this.A.New(['element_start', ''/*finalTag.replace(/^\s+|\s+$/g,'')*/]);
+												this.A.New(['element_start', '']);
 												tag = '';
 											} else {
 												this.A.New(['text', tag]);
@@ -484,7 +515,16 @@ var Micro = new function() {
 			components: {
 				'menu': ['div', 'class="menu"'],
 				'menu-brand': ['img', 'class="menu-brand"'],
-				'menu-item': ['div', 'class="menu-item"']
+				'menu-item': ['a', 'class="menu-item"'],
+				'clear': ['div', 'class="clear"'],
+				'dark': ['div', 'class="dark"'],
+				'grand': ['div', 'class="grand"'],
+				'grand-content': ['div', 'class="grand-content"'],
+				'title': ['div', 'class="title"'],
+				'sub-title': ['div', 'class="sub-title"'],
+				'code': ['div', 'class="code"'],
+				'middle': ['div', 'class="middle"'],
+				'sh': ['span', 'class="sh"']
 			},
 			responses: {
 				styles: [],
@@ -625,7 +665,8 @@ var Micro = new function() {
 					p += ' ' + kk + '="' + kkk + '"';
 				return p;
 			}.bind(this),
-			together: function(err) {
+			together: function(err, micro) {
+				if (!micro) return '';
 				var els = this.A.print(),
 					inner = '',
 					tags = [],
@@ -652,7 +693,6 @@ var Micro = new function() {
 						type == 'text' && (
 								!/[^\[]*\[$/.test(value)
 								&& !/[\s\n]*/.test(value)
-								//|| /[^\[]*\[$/.test(value)
 							)
 						) {
 						this.A.pReset();
@@ -661,12 +701,11 @@ var Micro = new function() {
 					switch(type) {
 						case 'element_start':
 							var tagname = this.A.tag,
-								tagname_r = tagname.replace(/^\s+|\s+$/,''),
+								tagname_r = tagname.tr(),
 								re = RegExp('('+ tagname +')((<br>|\\s|\\n)*)$'),
 								components = this.A.components,
 								tagname_c_props = '',
 								props = this.A.properties;
-
 							if (tags.length > 0
 									? RegExp("<" 
 										+ tags[tags.length - 1] 
@@ -681,7 +720,7 @@ var Micro = new function() {
 								return;
 							}
 
-							if (this.A.components.hasOwnProperty(tagname_r)) {
+							if (components.hasOwnProperty(tagname_r)) {
 								tagname_c_props = ' ' + components[tagname_r][1];
 								tagname_r = components[tagname_r][0];
 							}
@@ -771,14 +810,22 @@ var Micro = new function() {
 									continue;
 								}
 								var failed = false,
-								readd = Micro.read(props 
+								readd = micro.read(props 
 										+ (props.split('\n').length > 1 
-											? String.fromCharCode(13) : ''), false, false, function(e, ln) {
+											? '' : ''), false, false, function(e, ln) {
 									ln = ln || 'unknown';
 									failed = 'Error at line ' + ln + ': ' + e;
 								}),
 								inn = '(' + readd + (this.A.closedProperties ? ')' : '');
 								if (failed) return failed;
+								if (tags.length > 0
+										? RegExp("<" 
+											+ tags[tags.length - 1] 
+											+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*$").test(inner)
+										: false
+									) {
+									inner += '>';
+								}
 								inner += inn;
 								this.A.pReset();
 							} else if (
@@ -808,7 +855,6 @@ var Micro = new function() {
 									)) {
 									inner += '[';
 									this.A.tag = ''; this.A.pReset();
-									//continue;
 								}
 							}
 
@@ -818,23 +864,30 @@ var Micro = new function() {
 									&& els[i + 1][2] != ']'
 									&& els.length > 1
 								)) {
-									inner += isFullEl && this.R.tagRe.test(value) ? '' : (tags.length > 0 
-										? (
-											!RegExp("<" 
-													+ tags[tags.length - 1] 
-													+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*>$").test(inner)
-												&& whitespaceRE.test(value)
-											? '' : value
-										) : (
-											i > 0
+									inner += this.A.isSpace(value)
+										? value
+										: (
+											isFullEl && this.R.tagRe.test(value) 
+											? '' 
+											: (tags.length > 0 
 												? (
-													/^\s*\[[\s\n]*$/.test(value)
-														? (els[i - 1][1] == 'element_start' ? value : '')
-														: value
+													!RegExp("<" 
+															+ tags[tags.length - 1] 
+															+ "\\s*(\\s*[a-zA-Z0-9-]+\\s*=\\s*(\"[^\"]*\"|'[^']*'))*>$").test(inner)
+														&& whitespaceRE.test(value)
+													? '' : value
 												)
-												: (/^\s*\[[\s\n]*$/.test(value) ? '' : value)
-										)
-									);
+												: (
+													i > 0
+														? (
+															/^\s*\[[\s\n]*$/.test(value)
+																? (els[i - 1][1] == 'element_start' ? value : '')
+																: value
+														)
+														: (/^\s*\[[\s\n]*$/.test(value) ? '' : value)
+												)
+											)
+										);
 								}
 							else { inner += /\\+/.test(value) 
 										? value : value.replace(/\\+$/, '');
@@ -884,7 +937,7 @@ var Micro = new function() {
 		var core = new Core(),
 			arr = core.R.read(r, err, this.version);
 		if (b) return arr;
-		var newInner = core.A.together(err),
+		var newInner = core.A.together(err, this),
 			d2 = new Date().getTime(),
 			ret = failed ? failed : newInner;
 		return ms ? [d2 - d, ret, core.A.responses] : ret;
@@ -912,9 +965,11 @@ var Micro = new function() {
 					}
 			dd.innerHTML = ddInner;
 		}
+		el.style.display = 'none';
 		el.innerHTML = inn[1];
 		if (dd) {
 			el.innerHTML += dd.innerHTML;
+			el.style.display = '';
 			return;
 		}
 		if (responses) {
@@ -922,6 +977,9 @@ var Micro = new function() {
 				for (k = 0; kk = responses.styles[k]; k++) {
 					getResponse(kk, function(r, kk) {
 						el.innerHTML += '<style id="' + kk + '">' + r + '</style>';
+						if (responses.scripts.length == 0 
+								&& k == responses.styles.length)
+							el.style.display = '';
 					}, function(e) {
 						el.innerHTML = e;
 					}, true);
@@ -930,19 +988,29 @@ var Micro = new function() {
 				for (k = 0; kk = responses.scripts[k]; k++) {
 					getResponse(kk, function(r) {
 						eval(r);
+						if (k == responses.scripts.length)
+							el.style.display = '';
 					}, function(e) {
 						el.innerHTML = e;
 					}, true);
 				}
 		}
+		if (!responses || (responses.styles.length == 0
+				&& responses.scripts.length == 0)) 
+			el.style.display = '';
 	}
-	if (typeof this.e !== 'undefined')
-		getResponse(this.e.getAttribute('m-enable') + '.mi',
-			function(r){
-				this.render(r);
-			}.bind(this),
-			function(e) {
-				this.e.innerHTML = e;
-			}.bind(this),
-			true);
+	if (typeof this.e !== 'undefined') {
+		var link = this.e.getAttribute('m-enable');
+		if (link == 'this')
+			this.render(this.e.innerHTML.replace(/&amp;/g, '&'), this.e);
+		else
+			getResponse(link + '.mi',
+				function(r){
+					this.render(r);
+				}.bind(this),
+				function(e) {
+					this.e.innerHTML = e;
+				}.bind(this),
+				true);
+	}
 }
