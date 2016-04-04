@@ -5,6 +5,7 @@
 Micro.js, simple and easy to use framework made by PDKnight.
 
 ###[Try it yourself!](http://pdknight.github.io/Micro/tester)
+###[Example of Micro.js website](http://pdknight.github.io/Micro/example)
 
 ![Micro.js tester](http://i.imgur.com/UEWpyii.png)
 
