@@ -1,171 +1,219 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Micro.js tester</title>
-	<meta charset="utf-8">
-	<link href='https://fonts.googleapis.com/css?family=Work+Sans' rel='stylesheet' type='text/css'>
-	<style>
-		body > div:first-child, body > div:last-child {
-			display: none !important;
-		}
-		body,html {
-			margin: 0; padding: 0;
-		}
-		h1 {
-			font-family: 'Work Sans';
-			padding: 20px 40px;
-		}
-		a {
-			text-decoration: none;
-			color: #35649D;
-		}
-		a:hover {text-decoration: underline;}
-		#myInput {
-			display: block;
-		}
-		.code {
-			font-size: 25px;
-			font-weight: bold;
-			font-family: helvetica;
-			margin-top: 50px;
-		}
-		.table {
-			display: table;
-			width: 100%;
-		}
-		.table-heading {
-			display: table-cell;
-			width: 50%;
-			border-top: 1px solid #181818;
-			padding: 20px 25px 5px;
-			font-weight: bolder;
-			font-family: 'Work Sans';
-			font-size: 20px;
-		}
-		.table-heading:first-child {
-			border-right: 1px solid #181818;
-			background-color: #222;
-			color: white;
-		}
-		.table > div {
-			padding: 15px 25px;
-			width: 50%;
-			max-width: 50%;
-			display: table-cell;
-			border-bottom: 1px solid #181818;
-			overflow-x: hidden;
-			vertical-align: top;
-		}
-		.cell:first-child {
-			border-right: 1px solid #222;
-			background: #181818;
-		}
-		#run {
-			float: right;
-			background: #70E97C;
-			border: none;
-			color: #000000;
-			text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.49);
-			font-family: 'Work Sans';
-			font-weight: 900;
-			font-size: 14px;
-			padding: 6px 20px;
-			border-radius: 3px;
-			-webkit-border-radius: 3px;
-			-moz-border-radius: 3px;
-			-ms-border-radius: 3px;
-			-o-border-radius: 3px;
-			cursor: pointer;
-			outline: 0px none;
-			transition: all 0.3s;
-			-webkit-transition: all 0.3s;
-			-moz-transition: all 0.3s;
-			-ms-transition: all 0.3s;
-			-o-transition: all 0.3s;
-			box-shadow: 0px 0px 0px transparent;
-		}
-		#run:hover {
-			background: #A9EFB0;
-			box-shadow: 0px 0px 30px rgba(255, 255, 255, 0.3);
-		}
-		#code {
-			width: 100%;
-			padding: 0;
-			border: none;
-			resize: vertical;
-			min-height: 300px;
-			height: 100%;
-			color: white;
-			background: transparent;
-			outline: 0px none;
-		}
-	</style>
+    <title>Micro.js tester</title>
+    <meta charset="utf-8">
+    <link href='https://fonts.googleapis.com/css?family=Work+Sans' rel='stylesheet' type='text/css'>
+    <style>
+        body > div:first-child, body > div:last-child {
+            display: none !important;
+        }
+        body,html {
+            margin: 0; padding: 0;
+        }
+        body > h1 {
+            font-family: 'Work Sans';
+                font-family: 'Work Sans';
+                padding: 15px 20px;
+                margin: 0;
+                font-size: 20px;
+                height: 24px;
+        }
+        body > h1 > a {
+            text-decoration: none;
+            color: #35649D;
+        }
+        a:hover {text-decoration: underline;}
+        #myInput {
+            display: block;
+        }
+        .code {
+            font-size: 25px;
+            font-weight: bold;
+            font-family: helvetica;
+            margin-top: 50px;
+        }
+        .table {
+            display: table;
+            width: 100%;
+        }
+        .table-heading {
+            display: table-cell;
+            width: 50%;
+            border-top: 1px solid #181818;
+            padding: 20px 25px 5px;
+            font-weight: bolder;
+            font-family: 'Work Sans';
+            font-size: 20px;
+        }
+        .table-heading:first-child {
+            border-right: 1px solid #181818;
+            background-color: #222;
+            color: white;
+        }
+        .table > div {
+            padding: 15px 25px;
+            width: 50%;
+            max-width: 50%;
+            display: table-cell;
+            border-bottom: 1px solid #181818;
+            overflow-x: hidden;
+            vertical-align: top;
+            position: relative;
+        }
+        .table-container {
+            position: absolute;
+            top: 0px;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: auto;
+        }
+        .table.first-table {
+            z-index: 2;
+            position: relative;
+        }
+        .table.second-table {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            padding-top: 60px;
+            z-index: 1;
+        }
+        .table > .cell:first-child {
+            border-right: 1px solid #222;
+            background: #181818;
+        }
+        .first-table > .table-heading > #run {
+            float: right;
+            background: #70E97C;
+            border: none;
+            color: #000000;
+            text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.49);
+            font-family: 'Work Sans';
+            font-weight: 900;
+            font-size: 14px;
+            padding: 6px 20px;
+            margin: 0;
+            border-radius: 3px;
+            -webkit-border-radius: 3px;
+            -moz-border-radius: 3px;
+            -ms-border-radius: 3px;
+            -o-border-radius: 3px;
+            cursor: pointer;
+            outline: 0px none;
+            transition: all 0.3s;
+            -webkit-transition: all 0.3s;
+            -moz-transition: all 0.3s;
+            -ms-transition: all 0.3s;
+            -o-transition: all 0.3s;
+            box-shadow: 0px 0px 0px transparent;
+        }
+        .first-table > .table-heading > #run:hover {
+            background: #A9EFB0;
+            box-shadow: 0px 0px 30px rgba(255, 255, 255, 0.3);
+        }
+        .second-table > .cell > #code {
+            width: 100%;
+            padding: 0;
+            border: none;
+            resize: none;
+            min-height: 300px;
+            height: 100%;
+            color: white;
+            background: transparent;
+            outline: 0px none;
+        }
+        #output {
+            position: absolute;
+            top: 15px;
+            left: 25px;
+            right: 15px;
+            bottom: 25px;
+            width: auto;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
 
 <div></div>
 
-<h1><a href="https://github.com/PDKnight/Micro.js" target="_blank">Micro.js</a> tester</h1>
-
-<div class="table">
-	<div class="table-heading">Code<input type="button" id="run" value="Run"></div>
-	<div class="table-heading">Result (<span id="resultTime">0ms</span>)</div>
+<div class="table-container">
+    <div class="table first-table">
+        <div class="table-heading">Code<input type="button" id="run" value="Run"></div>
+        <div class="table-heading">Result (<span id="resultTime">0ms</span>)</div>
+    </div>
+    <div class="table second-table">
+        <div class="cell">
+        <textarea id="code" wrap="off">@import ../assets/components.css
+div [
+    h1 [h1 Heading sh[sub-heading]]
+    h2 [h2 Heading sh[sub-heading]]
+    h3 [h3 Heading sh[sub-heading]]
+    h4 [h4 Heading sh[sub-heading]]
+    h4 [h5 Heading sh[sub-heading]]
+    h4 [h6 Heading sh[sub-heading]]
+    
+    hr[]
+    
+    button [Button]
+    button (type: success) [Success]
+    button (type: error) [Error]
+    button (type: warning) [Warning]
+    button (type: info) [Info]
+]</textarea>
+        </div>
+        <div class="cell output-cont">
+            <div id="output"></div>
+        </div>
+    </div>
 </div>
-<div class="table">
-	<div class="cell">
-	<textarea id="code">@import ../assets/components.css
-menu [
-    menu-brand(src:http://pdknight.github.io/Micro/img/logo.png)[]
-    menu-item [Home]
-    menu-item [About us]
-]
-h2 (
-    color: #eee
-    font-family: 'Roboto'
-    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.4)
-    padding: 20px 40px
-    background: #aaa
-    max-width: 400px
-) [This is cool header]</textarea>
-	</div>
-	<div class="cell">
-		<div id="output"></div>
-	</div>
-</div>
 
-<script src="../micro.min.js"></script>
+<script src="behave.js"></script>
+<script>
+var editor = new Behave({
+    textarea: document.getElementById('code')
+});
+</script>
+<script src="../micro.js"></script>
 <script>
 function addEvent(el, name, func, bool) {
-	if (el.addEventListener)
-		el.addEventListener(name, func, bool);
-	else if (el.attachEvent)
-		el.attachEvent('on' + name, func);
-	else el['on' + name] = func;
+    if (el.addEventListener)
+        el.addEventListener(name, func, bool);
+    else if (el.attachEvent)
+        el.attachEvent('on' + name, func);
+    else el['on' + name] = func;
 }
 function r() {
-	code.value.length == 0
-		? output.innerHTML = ''
-		: Micro.render(code.value, output, resultTime);
+    code.value.length == 0
+        ? output.innerHTML = ''
+        : Micro.render(code.value, output, resultTime);
+    localStorage.setItem('session-code', code.value);
 }
 addEvent(run, 'click', function() {
-	r();
+    r();
 }, false);
-addEvent(document, 'keydown', function(e) {
-	var key = e.which || e.keyCode;
-	if ([16,17,18,20,33,34,35,36,37,38,39,40,45,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144]
-			.indexOf(key) == -1 
-			&& (!e.ctrlKey || (e.ctrlKey && (key == 86 || key == 88)))
-		)
-		r();
+addEvent(code, 'keydown', function(e) {
+    var key = e.which || e.keyCode;
+    if ([16,17,18,20,33,34,35,36,37,38,39,40,45,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144]
+            .indexOf(key) == -1 
+            && (!e.ctrlKey || (e.ctrlKey && (key == 86 || key == 88)))
+        )
+        r();
 }, false);
-addEvent(document, 'keyup', function(e) {
-	var key = e.which || e.keyCode;
-	if ([16,17,18,20,33,34,35,36,37,38,39,40,45,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144]
-			.indexOf(key) == -1
-			&& (!e.ctrlKey || (e.ctrlKey && (key == 86 || key == 88)))
-		)
-		r();
+addEvent(code, 'keyup', function(e) {
+    var key = e.which || e.keyCode;
+    if ([16,17,18,20,33,34,35,36,37,38,39,40,45,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144]
+            .indexOf(key) == -1
+            && (!e.ctrlKey || (e.ctrlKey && (key == 86 || key == 88)))
+        )
+        r();
 }, false);
+code.value = localStorage.getItem('session-code');
 r();
 </script>
 
