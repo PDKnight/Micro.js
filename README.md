@@ -6,8 +6,8 @@ Micro.js, simple and easy to use framework made by PDKnight.
 
 > #[Documentation](https://github.com/PDKnight/Micro.js/blob/master/docs.md)
 
-#####[Try it yourself!](http://pdknight.github.io/Micro/tester)
-#####[Example of Micro.js website](http://pdknight.github.io/Micro/example)
+####[Try it yourself!](http://pdknight.github.io/Micro/tester)
+####[Example of Micro.js website](http://pdknight.github.io/Micro/example)
 
 ![Micro.js tester](http://i.imgur.com/UEWpyii.png)
 
@@ -26,9 +26,13 @@ Note: you don't have to put .mi at the end of the `m-enable` attribute, so if we
 ##Features:
 ###Compatibility
 Works with every browser.
-###Syntax
-### Custom functions
-##### Micro.read(text, [show_miliseconds])
+###Simple syntax
+Literally. Look at this example:
+```html
+Hello, b [world]!
+```
+###Custom functions
+#####Micro.read(text, [show_miliseconds])
 Converts Micro.js text to HTML.
 - text: Text to convert to HTML.
 - show\_miliseconds (optional): If set to true, framework will output an array: `[miliseconds, converted_text]`.
@@ -38,7 +42,7 @@ Example:
 Micro.read('h1 [Hello, world!]', true); // Will print out: [1, "<h1>Hello, world!</h1>"]
 ```
 
-##### Micro.render(text, element, [element2])
+#####Micro.render(text, element, [element2])
 Renders the text.
 - text: Text to convert to HTML.
 - elmeent: Element to write the result HTML.
@@ -49,7 +53,7 @@ Example:
 Micro.render('h1 [Hello, world!]', document.body); // Will render big header in body element.
 ```
 
-## Debugging
+##Debugging
 In the case `micro.js` will print an error, find it in the table below:
 
 | Error | Description | Example | Solution |
