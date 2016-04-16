@@ -264,8 +264,7 @@ var Micro = new function() {
                             && this.A.tag_level > 0
                             && this.R.check(0))
                         l = l.replace(/^(\t| {4})/, '');
-
-                    //tag = ''; // reset tag
+                        
                     if (l.length == 0 || l.charCodeAt(l.length - 1) != 13)
                         l += this.R.ln != this.R.lns.length
                             ? String.fromCharCode(13)
@@ -891,7 +890,6 @@ var Micro = new function() {
                         }
                     }
                 Micro.read(function(args) {
-                    //var args = argz;
                     args = args.replace(/&lt;/g, '<').replace(/&gt;/g,'>');
                     switch(cmd) {
                         case 'echo':
