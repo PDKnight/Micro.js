@@ -92,10 +92,18 @@ code {line-height: 1.5;}
 
 .grand {
     z-index: 1;
-    min-height: 300px;
     background-size: cover;
     background-position: center;
     position: relative;
+}
+.grand[type="full"] {
+	z-index: -1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: table;
 }
 
 
@@ -103,7 +111,11 @@ code {line-height: 1.5;}
     width: auto;
     height: auto;
     padding: 80px 100px;
-    margin-top: 60px;
+}
+.grand[type="full"] .grand-content {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 0;
 }
 
 
@@ -240,6 +252,41 @@ input:focus, input[active="on"] {
     border-color: #a0b1d0;
 }
 
+
+.upbar-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+.upbar {
+    position: relative;
+    width: 100%;
+    padding: 10px 20px;
+    margin-bottom: 2px;
+    background: #ebeef3;
+    font-family: 'Roboto';
+    font-size: 14px;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+.upbar[type="success"] {background: #bdeeda;}
+.upbar[type="error"] {background: #eebdbd;}
+.upbar[type="warning"] {background: #e8eebd;}
+.upbar[type="info"] {background: #bde2ee;}
+.upbar:after {
+    content: 'Click to hide message';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 18px;
+    font-family: 'Source Code Pro';
+    font-size: 10px;
+    color: #aaa;
+    line-height: 1.7;
+    text-align: center;
+}
 
 
 *[hidden="on"] {display: none !important;}
