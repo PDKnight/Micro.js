@@ -1,3 +1,16 @@
+## [v1.4](https://github.com/PDKnight/Micro.js/blob/81fe7a4cf9215b2f38ae36633f36296a3214b098/src/micro.js) *(commands update)*
+* Changed use of `Micro.read` function.
+* Now you can use AJAX request with `Micro.getResponse()`.
+* Added custom property for `grand`: full.
+* Added `upbar` component with property `type` (success, error, warning, info)
+* Added `upbar-container` component.
+* Added `container` component.
+* **Added commands!**
+* Added ability to use commands in properties.
+* Added get, echo, rand, def, set-cookie, get-cookie, eval, exec, upper, lower, capitalize, reverse, newline, repeat, end-repeat, if and end-if commands.
+* Added ability to use variables in code with `@variableName`.
+* Added option to use commands inside commands.
+
 ## [v1.3](https://github.com/PDKnight/Micro.js/blob/7a332545c58d7b7115842cef1c3c0129be012a2f/src/micro.js) *(components update)*
 * **Added more components!**
 * **Added custom properties!**
