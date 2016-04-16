@@ -1,6 +1,6 @@
 ![Micro.js logo](http://pdknight.github.io/Micro/img/logo2.png)
 
-`v1.3`
+`v1.4`
 
 Micro.js, simple and easy to use framework made by PDKnight.
 
@@ -10,6 +10,7 @@ Micro.js, simple and easy to use framework made by PDKnight.
 ####[Example of Micro.js website](http://pdknight.github.io/Micro/example)
 
 ![Micro.js tester](http://i.imgur.com/UEWpyii.png)
+![Commands](http://i.imgur.com/6X5C1Q5.png)
 
 ##Install
 * Download [the latest minified version](https://github.com/PDKnight/Micro.js/blob/master/src/micro.min.js) of micro.js file.
@@ -32,26 +33,36 @@ Literally. Look at this example:
 Hello, b [world]!
 ```
 ###Custom functions
-#####Micro.read(text, [show_miliseconds])
+#####Micro.read(fn, text, [show_miliseconds])
 Converts Micro.js text to HTML.
+- fn: Function where will be the result parsed.
 - text: Text to convert to HTML.
 - show\_miliseconds (optional): If set to true, framework will output an array: `[miliseconds, converted_text]`.
 
 Example:
 ```javascript
-Micro.read('h1 [Hello, world!]', true); // Will print out: [1, "<h1>Hello, world!</h1>"]
+Micro.read(function(r) {
+    console.log(r);
+}, 'h1 [Hello, world!]', true); // Will print to the console: [1, "<h1>Hello, world!</h1>"]
 ```
 
 #####Micro.render(text, element, [element2])
 Renders the text.
 - text: Text to convert to HTML.
-- elmeent: Element to write the result HTML.
+- element: Element to write the result HTML.
 - element2 (optional): Element to write time it took Micro.js to process the text.
 
 Example:
 ```javascript
 Micro.render('h1 [Hello, world!]', document.body); // Will render big header in body element.
 ```
+
+#####Micro.getResponse(url, fn, err, bool)
+Makes an AJAX request.
+- url: A path to the file you want to get contents from.
+- fn: Function there the response text will be send to.
+- err: Error function which will be called when there was an error while getting file.
+- bool: false/true.
 
 ##Debugging
 In the case `micro.js` will print an error, find it in the table below:
