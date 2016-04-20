@@ -1,5 +1,7 @@
 #Micro.js documentation
 
+####[Commands](https://github.com/PDKnight/Micro.js/blob/master/commands.md)
+
 ####Components
 To use an a component, you have to keep this structure:
 ```html
