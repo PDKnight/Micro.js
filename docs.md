@@ -66,6 +66,8 @@ You have also ability to use custom properties. Here's list of all the custom pr
 * type:
  * for buttons - success/error/warning/info
  * for divs (table layout system) - t-12/t-6/t-4/t-3/t-2/t-1/t-row
+* tooltip
+
 Example:
 ```html
 Example: 
@@ -79,6 +81,15 @@ title (
     Micro.js 
 ] 
 ```
+
+####Tooltips
+You can also use tooltips for elements. Simple: use `tooltip` property with some text. You can use HTML, too.
+```html
+span (tooltip: some <b>text</b>) [test]
+```
+Will turn into
+
+![Tooltip](http://i.imgur.com/JxZGFmv.png)
 
 ---
 
