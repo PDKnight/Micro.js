@@ -79,7 +79,18 @@ if (!Array.prototype.indexOf)
 
 var Micro = new function() {
     this.e;
-    this.version = '1.4';
+    this.version = '1.4.5';
+    this.tooltip = {
+        added: false,
+        html: 'if(!Micro.tooltip.added){var e=document.createElement("div");e.id="ttDiv",e.style.position="fixed",e.style.color="white",e.style.fontSize="14px",e.style.background="rgba(25, 25, 25, 0.75)",e.style.padding="5px 12px",e.style.fontFamily="helvetica",e.style.borderRadius="2px",e.style.display="none",document.body.appendChild(e),Micro.addEvent(document,"mousemove",function(t){var i=t.target;if(e.style.display="none",i.hasAttribute("tooltip")){var n=i.getAttribute("tooltip");if(0!=n.length){var d={x:t.pageX+15,y:t.pageY+15,w:window.innerWidth-this.x,h:window.innerHeight-this.y};e.style.top=d.y+"px",e.style.left=d.x+"px",e.style.maxWidth=d.w+"px",e.style.maxHeight=d.h+"px",e.innerHTML=n,e.style.display=""}}},!1),Micro.addEvent(document,"mouseout",function(t){t=t?t:window.event;var i=t.relatedTarget||t.toElement;i&&"HTML"!=i.nodeName||(e.style.display="none")},!1),Micro.tooltip.added=!0}',
+    };
+    this.addEvent = function(e, n, fn) {
+        if (e.addEventListener)
+            e.addEventListener(n, fn, false);
+        else if (e.attachEvent)
+            e.attachEvent('on' + n, fn);
+        else e['on' + n] = fn;
+    };
     var d = document,
         sel = function(s, b) {
             return b ? d.querySelectorAll(s) : d.querySelector(s);
@@ -247,7 +258,7 @@ var Micro = new function() {
                             if (document.title) document.title = title;
                             this.R.ln++;
                             continue;
-                        } else if (/^@[^:]+:\s*.+/.test(l)) {
+                        } else if (/^@[^:]+:\s*.+/.test(l)) { // console_output RE: ([\s\n]+if\s*\(this\.R\.check\(1\)\)([\s\n]+if\s+\(version\))?)?[\s\n]+console\.log\(([^;]|\n)+;[^\n]*
                             val_prop = l.split(/:\s*/);
                             value = val_prop[0].replace(/^@/,'');
                             if (!this.R.properties.hasOwnProperty(value)) {
@@ -264,7 +275,8 @@ var Micro = new function() {
                             && this.A.tag_level > 0
                             && this.R.check(0))
                         l = l.replace(/^(\t| {4})/, '');
-                        
+
+                    //tag = ''; // reset tag
                     if (l.length == 0 || l.charCodeAt(l.length - 1) != 13)
                         l += this.R.ln != this.R.lns.length
                             ? String.fromCharCode(13)
@@ -890,19 +902,20 @@ var Micro = new function() {
                         }
                     }
                 Micro.read(function(args) {
+                    //var args = argz;
                     args = args.replace(/&lt;/g, '<').replace(/&gt;/g,'>');
                     switch(cmd) {
                         case 'echo':
                             append(args);
                             break;
                         case 'get':
-                            stopLoop = true;
+                            endCmdLoop = true;
                             micro.getResponse(args, function(r) {
-                                    append(r);
-                                    this.A.loopElements(i + 1, err, micro, function(inner) {
-                                        fn(inner);
-                                    });
-                                    return;
+                                append(r);
+                                this.A.loopElements(i + 1, err, micro, function(inner) {
+                                    fn(inner);
+                                });
+                                return;
                                 }.bind(this),
                                 function(e) {
                                     err(e + ": File named '" + args + "' doesn't exist.", this.R.ln);
@@ -915,7 +928,7 @@ var Micro = new function() {
                             break;
                         case 'rand':
                             var spl = args.split(/\s/g);
-                            if (spl.length == null){err('Correct syntax: rand a b ... n', this.R.ln); break;}
+                            if (spl.length == 1){err('Correct syntax: rand a b ... n', this.R.ln); break;}
                             var ri = spl[Math.floor(Math.random() * spl.length)];
                             append(ri);
                             break;
@@ -927,7 +940,7 @@ var Micro = new function() {
                             break;
                         case 'set-cookie':
                             var mtchh = args.match(/(\S+)\s*(.+)/);
-                            if (mtchh == null){err('Correct syntax: set-cookie name value', this.R.ln); break;}
+                            if (mtchh == null){err('Correct syntax: set-cookie name value.', this.R.ln); break;}
                             if (!/^[a-zA-Z0-9-]+$/.test(mtchh[1])) {err('Only alphanumeric name (with optional hyphen) is supported.', this.R.ln); break;}
                             document.cookie = mtchh[1] +'='+ mtchh[2] +'; Path=/;';
                             break;
@@ -974,7 +987,6 @@ var Micro = new function() {
                         case 'repeat':
                             if (repeat.is) {err("You can't start a repeat inside a repeat.", this.R.ln); break;}
                             var mtchh = args.match(/(\S+)\s*(.*)/);
-                            if (mtchh == null){err('Correct syntax: repeat count [optional command]', this.R.ln); break;}
                             if (!/^\d+$/.test(mtchh[1])) {err('Count must be an integer.', this.R.ln); break;}
                             if (this.A.isSpace(mtchh[2])) {
                                 repeat.is = true;
@@ -1016,7 +1028,6 @@ var Micro = new function() {
                             break;
                         case 'if':
                             if (cond.is) {err("You can't start a condition inside a condition.", this.R.ln); break;}
-                            if (args.length == 0){err('Correct syntax: if condition', this.R.ln); break;}
                             if (!/^((?!(==|!=|<|<=|>|>=)).)+(==|!=|<|<=|>|>=).+/.test(args))
                                 {err('Condition must contain one of operators (==, !=, >, >=, <, <=).', this.R.ln); break;}
                             cond.is = true;
@@ -1123,7 +1134,7 @@ var Micro = new function() {
                     inner = this.A.tv.inner,
                     tags = this.A.tv.tags,
                     startedBrackets = this.A.tv.startedBrackets,
-                    stopLoop = false;
+                    endCmdLoop = false;
                 for (; i < els.length; i++) {
                     x = els[i];
                     var type = x[1],
@@ -1405,7 +1416,7 @@ var Micro = new function() {
 
                     if (i == els.length - 1) fn(inner);
 
-                    if (stopLoop) break;
+                    if (endCmdLoop) break;
                 }
             }.bind(this),
             together: function(err, micro, fn) {
@@ -1467,6 +1478,7 @@ var Micro = new function() {
             el.innerHTML = inn instanceof Array ? inn[1] : inn;
             if (dd) {
                 el.innerHTML += dd.innerHTML;
+                eval(this.tooltip.html);
                 el.style.display = '';
                 return;
             }
@@ -1496,6 +1508,7 @@ var Micro = new function() {
                         }, true);
                     }
             }
+            eval(this.tooltip.html);
             if (!responses 
                     || (responses 
                             && (responses.hasOwnProperty('styles') 
