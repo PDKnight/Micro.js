@@ -1,6 +1,6 @@
 ![Micro.js logo](http://pdknight.github.io/Micro/img/logo2.png)
 
-`v1.4`
+`v1.4.5`
 
 Micro.js, simple and easy to use framework made by PDKnight.
 
