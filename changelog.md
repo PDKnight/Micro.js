@@ -1,3 +1,7 @@
+## [v1.4.5](https://github.com/PDKnight/Micro.js/blob/4ec4123d5711641a083212a4b3cbf29bfe846243/src/micro.js) *(tooltips update)*
+* Removed 2 unused error reportings.
+* **Added tooltips!**
+
 ## [v1.4](https://github.com/PDKnight/Micro.js/blob/81fe7a4cf9215b2f38ae36633f36296a3214b098/src/micro.js) *(commands update)*
 * Changed use of `Micro.read` function.
 * Now you can use AJAX request with `Micro.getResponse()`.
